@@ -1,5 +1,7 @@
 package gui;
 
+import schotswarmintelligence.Globals;
+
 public class SIFrame extends javax.swing.JFrame {
 
     SIPanel thePanel;
@@ -7,10 +9,10 @@ public class SIFrame extends javax.swing.JFrame {
     
     public SIFrame() {
         initComponents();
-        setBounds(0,0,1100,800);
+        setBounds(Globals.LEFT, Globals.TOP, Globals.WIDTH, Globals.HEIGHT);
         setTitle("Swarm Intelligence");
-        thePanel = new SIPanel();
-        controls = new ControlsFrame();
+        thePanel = new SIPanel(this);
+        controls = new ControlsFrame(thePanel.getModel());
         add(thePanel);
         setVisible(true);
     }

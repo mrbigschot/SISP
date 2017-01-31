@@ -1,12 +1,22 @@
 package gui;
 
+import schotswarmintelligence.Globals;
+import schotswarmintelligence.SIModel;
+
 public class ControlsFrame extends javax.swing.JFrame {
 
+    SIModel theModel;
+    
     public ControlsFrame() {
         initComponents();
-        setBounds(1100,0,300,600);
+        setBounds(Globals.WIDTH,Globals.TOP,300,600);
         setTitle("Controls");
         setVisible(true);
+    }
+    
+    public ControlsFrame(SIModel m) {
+        this();
+        theModel = m;
     }
 
     @SuppressWarnings("unchecked")
