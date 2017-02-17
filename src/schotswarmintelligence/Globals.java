@@ -3,9 +3,16 @@ package schotswarmintelligence;
 
 public class Globals {
 
-    public static int LEFT = 0;
-    public static int WIDTH = 1100;
-    public static int TOP = 0;
-    public static int HEIGHT = 800;
+    public static boolean DEBUG = false;
+    
+    public static int WIDTH = 500;
+    public static int HEIGHT = 500;
+    public static int BUG_SIGHT = 25;
+    
+    public static int random(int min, int max) {
+        double d = Math.random();
+        double range = (max - min) * d;
+        return (int) (range + min);
+    }
     
 }
