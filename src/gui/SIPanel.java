@@ -12,9 +12,8 @@ public class SIPanel extends javax.swing.JPanel implements Viewable {
     
     public SIPanel() {
         initComponents();
-        theController = new Controller(this, theModel);
         theModel = new SIModel();
-//        theController.start();
+        theController = new Controller(this, theModel);
     }
     
     public SIPanel(SIFrame f) {
@@ -29,6 +28,10 @@ public class SIPanel extends javax.swing.JPanel implements Viewable {
     
     public SIModel getModel() {
         return theModel;
+    }
+    
+    public Controller getController() {
+        return theController;
     }
 
     @Override
