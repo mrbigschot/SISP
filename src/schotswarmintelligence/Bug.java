@@ -10,10 +10,10 @@ import java.awt.Graphics;
 public class Bug extends SIObject {
 
     Swarm theSwarm;
-    double velocity;
+    double speed;
     double orientation; // given in degrees, stored in radians, 0 is along +x axis
 
-    int[][] neighborhood;
+    Neighborhood nhood;
 
     public Bug() {
 
@@ -25,12 +25,12 @@ public class Bug extends SIObject {
         this.y = y;
     }
 
-    public void setVel(double v) {
-        this.velocity = v;
+    public void setSpeed(double s) {
+        this.speed = s;
     }
 
-    public double getVelocity() {
-        return velocity;
+    public double getSpeed() {
+        return speed;
     }
 
     public void setAngle(double a) {
@@ -41,8 +41,8 @@ public class Bug extends SIObject {
         return orientation;
     }
 
-    public void setNeighborhood(int[][] b) {
-        this.neighborhood = b;
+    public void setNeighborhood(Neighborhood n) {
+        this.nhood = n;
     }
 
     @Override
@@ -52,6 +52,8 @@ public class Bug extends SIObject {
     }
 
     public void step() {
+//        System.out.println(this.toString());
+//        System.out.println(nhood.toString());
         update();
         move();
 //        theSwarm.updateLocation((int) x, (int) y);
@@ -64,32 +66,23 @@ public class Bug extends SIObject {
     }
 
     private void avoidWalls() {
-//        String returnMe = "";
-//        for (int i = 0; i < neighborhood.length; i++) {
-//            for (int j = 0; j < neighborhood[0].length; j++) {
-//                returnMe += neighborhood[i][j];
-//            }
-//            returnMe += "\n";
-//        }
-//        System.out.println(returnMe);
-        if (facingWall()) {
-            orientation += .1;
-        }
-        
     }
-    
-    private boolean facingWall() {
-        return false;
+
+    private boolean facingWall(double nx, double ny) {
+        double dx = nx - x;
+        double dy = ny - y;
+        int gx = (int) (nhood.getCenter()[0] + dx);
+        int gy = (int) (nhood.getCenter()[1] + dy);
+        return nhood.getGrid()[gx][gy] == 1;
     }
-    
 
     private void matchVel() {
         double avgVel = swarmVel();
-        if (avgVel > velocity) {
-            velocity += .1;
+        if (avgVel > speed) {
+            speed += .1;
         } else {
-            if (avgVel < velocity) {
-                velocity -= .1;
+            if (avgVel < speed) {
+                speed -= .1;
             } else {
 
             }
@@ -113,7 +106,7 @@ public class Bug extends SIObject {
         double sum = 0;
         for (Bug neighbor : theSwarm) {
             if (!neighbor.equals(this)) {
-                sum += neighbor.getVelocity();
+                sum += neighbor.getSpeed();
             }
         }
         return sum / (theSwarm.size() - 1);
@@ -130,16 +123,22 @@ public class Bug extends SIObject {
     }
 
     public void move() {
-        x = x + (velocity * Math.cos(orientation));
-        y = y + (velocity * Math.sin(orientation));
+        double nx = x + (speed * Math.cos(orientation));
+        double ny = y + (speed * Math.sin(orientation));
+        if (facingWall(nx, ny)) {
+            orientation += 1;
+        } else {
+            x = nx;
+            y = ny;
+        }
     }
 
     @Override
     public String toString() {
-        String returnMe = "Bug: \n";
+        String returnMe = "Bug: (" + x + ", " + y + ")\n";
 
         returnMe += "angle = " + orientation + "\n";
-        returnMe += "v = " + velocity;
+        returnMe += "speed = " + speed;
 
         return returnMe;
 

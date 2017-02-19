@@ -17,11 +17,11 @@ public class Swarm extends ArrayList<Bug> {
     public void initialize() {
         this.clear();
         for (int i = 0; i < 15; i++) {
-            int x = Globals.random(220, 280);
-            int y = Globals.random(220, 280);
+            int x = Globals.random(10, 90);
+            int y = Globals.random(10, 90);
             Bug bug = new Bug(this, x, y);
             bug.setAngle(Globals.random(0, 360));
-            bug.setVel(1);
+            bug.setSpeed(1);
             this.add(bug);
         }
     }

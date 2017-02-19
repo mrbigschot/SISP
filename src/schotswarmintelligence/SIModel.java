@@ -28,6 +28,9 @@ public class SIModel implements Modelable {
 
     public void paint(Graphics g) {
         theGrid.paint(g);
+        for (Bug bug : theSwarm) {
+            bug.paint(g);
+        }
     }
 
 }
