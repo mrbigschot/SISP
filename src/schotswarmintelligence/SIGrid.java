@@ -30,7 +30,7 @@ public class SIGrid {
         }
     }
 
-    public int[][] getNeighborhood(double dx, double dy) {
+    public Neighborhood getNeighborhood(double dx, double dy) {
         int ix = (int) dx;
         int iy = (int) dy;
         int n = Globals.BUG_SIGHT;
@@ -38,16 +38,17 @@ public class SIGrid {
         int xmax = Math.min(ix + n, Globals.WIDTH);
         int ymin = Math.max(iy - n, 0);
         int ymax = Math.min(iy + n, Globals.HEIGHT);
-        int[][] returnMe = new int[xmax - xmin][ymax - ymin];
+        int[][] nGrid = new int[xmax - xmin][ymax - ymin];
         for (int i = xmin; i < xmax; i++) {
             for (int j = ymin; j < ymax; j++) {
                 if (walls[i][j]) {
-                    returnMe[i - xmin][j - ymin] = 1;
+                    nGrid[i - xmin][j - ymin] = 1;
+                } else {
+                    nGrid[i - xmin][j - ymin] = grid[i][j];
                 }
-                returnMe[i - xmin][j - ymin] = grid[i][j];
             }
         }
-        return returnMe;
+        return new Neighborhood(nGrid, ix - xmin, iy - ymin);
     }
 
     public void setValue(int x, int y, int value) {
@@ -58,7 +59,7 @@ public class SIGrid {
         g.setColor(Color.BLACK);
         for (int x = 0; x < Globals.WIDTH; x++) {
             for (int y = 0; y < Globals.HEIGHT; y++) {
-                if (grid[x][y] == 1) {
+                if (walls[x][y]) {
                     g.drawRect(x, y, 1, 1);
                 }
             }
