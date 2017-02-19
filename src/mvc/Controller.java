@@ -14,6 +14,7 @@ public class Controller extends Thread {
     }
     
     public Controller(Viewable v, Modelable m) {
+        this.start();
         theView = v;
         theModel = m;
     }
@@ -23,8 +24,10 @@ public class Controller extends Thread {
         for (;;) {
             if (running || stepping) {
                 step();
-                stepping = false;  // only take one step per button press
+                stepping = false; // only take one step per button press
+                delay(); 
             }
+            delay();
         }
     }
 
@@ -45,6 +48,7 @@ public class Controller extends Thread {
     
     public void toggleStepping() {
         stepping = !stepping;
+        running = false;
     }
 
     private void step() {
