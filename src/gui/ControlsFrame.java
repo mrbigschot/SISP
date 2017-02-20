@@ -31,6 +31,7 @@ public class ControlsFrame extends javax.swing.JFrame {
         runButton = new javax.swing.JButton();
         stepButton = new javax.swing.JButton();
         resetButton = new javax.swing.JButton();
+        timeSlider = new javax.swing.JSlider();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -55,19 +56,33 @@ public class ControlsFrame extends javax.swing.JFrame {
             }
         });
 
+        timeSlider.setMajorTickSpacing(5);
+        timeSlider.setMaximum(20);
+        timeSlider.setMinorTickSpacing(5);
+        timeSlider.setPaintTicks(true);
+        timeSlider.setValue(10);
+        timeSlider.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                timeSliderStateChanged(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(runButton)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(stepButton)
-                .addContainerGap(238, Short.MAX_VALUE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(resetButton)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(runButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(stepButton)
+                        .addGap(0, 232, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(timeSlider, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(resetButton)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -77,8 +92,10 @@ public class ControlsFrame extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(runButton)
                     .addComponent(stepButton))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 230, Short.MAX_VALUE)
-                .addComponent(resetButton)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 221, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(resetButton)
+                    .addComponent(timeSlider, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
         );
 
@@ -96,6 +113,10 @@ public class ControlsFrame extends javax.swing.JFrame {
     private void resetButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resetButtonActionPerformed
         theFrame.repaint();
     }//GEN-LAST:event_resetButtonActionPerformed
+
+    private void timeSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_timeSliderStateChanged
+        theController.setDelay(timeSlider.getValue());
+    }//GEN-LAST:event_timeSliderStateChanged
 
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
@@ -133,6 +154,7 @@ public class ControlsFrame extends javax.swing.JFrame {
     private javax.swing.JButton resetButton;
     private javax.swing.JButton runButton;
     private javax.swing.JButton stepButton;
+    private javax.swing.JSlider timeSlider;
     // End of variables declaration//GEN-END:variables
 
 }
