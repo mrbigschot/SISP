@@ -55,6 +55,10 @@ public class SIGrid {
         grid[x][y] = value;
     }
 
+    public void clean() {
+        grid = new int[Globals.WIDTH][Globals.HEIGHT]; // (x, y)
+    }
+
     public void paint(Graphics g) {
         g.setColor(Color.BLACK);
         for (int x = 0; x < Globals.WIDTH; x++) {
@@ -69,13 +73,12 @@ public class SIGrid {
     @Override
     public String toString() {
         String returnMe = "";
-        for (int i = 0; i < Globals.HEIGHT; i++) {
-            for (int j = 0; j < Globals.WIDTH; j++) {
-                returnMe += grid[j][i];
+        for (int y = 0; y < Globals.HEIGHT; y++) {
+            for (int x = 0; x < Globals.WIDTH; x++) {
+                returnMe += grid[x][y];
             }
             returnMe += "\n";
         }
-
         return returnMe;
     }
 

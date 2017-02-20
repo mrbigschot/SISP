@@ -38,9 +38,9 @@ public class Neighborhood {
     @Override
     public String toString() {
         String returnMe = "Neighborhood centered at: (" + cX + ", " + cY + ")\n";
-        for (int i = 0; i < grid.length; i++) {
-            for (int j = 0; j < grid[0].length; j++) {
-                returnMe += grid[i][j];
+        for (int y = 0; y < grid[0].length; y++) {
+            for (int x = 0; x < grid.length; x++) {
+                returnMe += grid[x][y];
             }
             returnMe += "\n";
         }
