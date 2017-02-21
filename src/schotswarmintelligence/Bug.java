@@ -51,45 +51,51 @@ public class Bug extends SIObject {
         g.fillOval((int) x, (int) y, 3, 3);
     }
 
+    public void updateLocation() {
+        theSwarm.updateLocation((int) x, (int) y);
+    }
+    
     public void step() {
-//        System.out.println(this.toString());
-//        System.out.println(nhood.toString());
+        if (Globals.DEBUG) {
+            System.out.println(nhood.toString());
+        }
         update();
         move();
-//        theSwarm.updateLocation((int) x, (int) y);
     }
 
     public void update() {
-        avoidWalls();
-        matchVel();
-        matchAng();
+        avoidCollision();
+//        matchVel();
+        towardCenter();
     }
 
-    private void avoidWalls() {
-    }
-
-    private boolean facingWall(double nx, double ny) {
-        double dx = nx - x;
-        double dy = ny - y;
-        int gx = (int) (nhood.getCenter()[0] + dx);
-        int gy = (int) (nhood.getCenter()[1] + dy);
-        return nhood.getGrid()[gx][gy] == 1;
+    private void avoidCollision() {
+        int xmin = Math.max(0, nhood.getCenter()[0] - 5);
+        int xmax = Math.min(nhood.getWidth(), nhood.getCenter()[0] + 5);
+        int ymin = Math.max(0, nhood.getCenter()[1] - 5);
+        int ymax = Math.min(nhood.getWidth(), nhood.getCenter()[1] + 5);
+        for (int ix = xmin; ix < xmax; ix++) {
+            for (int iy = ymin; iy < ymax; iy++) {
+                if (!(ix == nhood.getCenter()[0] && iy == nhood.getCenter()[1])) {
+                    if (nhood.getGrid()[ix][iy] == 2) {
+                        orientation += .1;
+                    }
+                }
+            }
+        }
     }
 
     private void matchVel() {
-        double avgVel = swarmVel();
-        if (avgVel > speed) {
+        double avgSpd = swarmVel();
+        if (avgSpd > speed) {
             speed += .1;
         } else {
-            if (avgVel < speed) {
+            if (avgSpd < speed) {
                 speed -= .1;
             } else {
 
             }
         }
-    }
-
-    private void matchAng() {
         double avgAng = swarmAng();
         if (avgAng > orientation) {
             orientation += .1;
@@ -122,6 +128,10 @@ public class Bug extends SIObject {
         return sum / (theSwarm.size() - 1);
     }
 
+    private void towardCenter() {
+
+    }
+
     public void move() {
         double nx = x + (speed * Math.cos(orientation));
         double ny = y + (speed * Math.sin(orientation));
@@ -131,6 +141,14 @@ public class Bug extends SIObject {
             x = nx;
             y = ny;
         }
+    }
+
+    private boolean facingWall(double nx, double ny) {
+        double dx = nx - x;
+        double dy = ny - y;
+        int gx = (int) (nhood.getCenter()[0] + dx);
+        int gy = (int) (nhood.getCenter()[1] + dy);
+        return nhood.getGrid()[gx][gy] == 1;
     }
 
     @Override
