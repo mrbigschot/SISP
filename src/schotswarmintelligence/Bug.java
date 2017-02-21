@@ -37,6 +37,17 @@ public class Bug extends SIObject {
         orientation = a * Math.PI / 180;
     }
 
+    public void addToAngle(double a) {
+        orientation += a;
+        if (orientation >= (2 * Math.PI)) {
+            orientation -= (2 * Math.PI);
+        } else {
+            if (orientation > 0) {
+                orientation += (2 * Math.PI);
+            }
+        }
+    }
+    
     public double getAngle() {
         return orientation;
     }
@@ -54,7 +65,7 @@ public class Bug extends SIObject {
     public void updateLocation() {
         theSwarm.updateLocation((int) x, (int) y);
     }
-    
+
     public void step() {
         if (Globals.DEBUG) {
             System.out.println(nhood.toString());
@@ -76,10 +87,8 @@ public class Bug extends SIObject {
         int ymax = Math.min(nhood.getWidth(), nhood.getCenter()[1] + 5);
         for (int ix = xmin; ix < xmax; ix++) {
             for (int iy = ymin; iy < ymax; iy++) {
-                if (!(ix == nhood.getCenter()[0] && iy == nhood.getCenter()[1])) {
-                    if (nhood.getGrid()[ix][iy] == 2) {
-                        orientation += .1;
-                    }
+                if (!(ix == nhood.getCenter()[0] && iy == nhood.getCenter()[1]) && (nhood.getGrid()[ix][iy] == 2)) {
+                    addToAngle(.1);
                 }
             }
         }
@@ -129,7 +138,30 @@ public class Bug extends SIObject {
     }
 
     private void towardCenter() {
-
+        double xsum = 0;
+        double ysum = 0;
+        int count = 0;
+        for (int ix = 0; ix < nhood.getWidth(); ix++) {
+            for (int iy = 0; iy < nhood.getHeight(); iy++) {
+                if (!(ix == nhood.getCenter()[0] && iy == nhood.getCenter()[1]) && (nhood.getGrid()[ix][iy] == 2)) {
+                    xsum += ix;
+                    ysum += iy;
+                    count++;
+                }
+            }
+        }
+        double xavg = xsum / count;
+        double yavg = ysum / count;
+        double a = xavg - nhood.getCenter()[0];
+        double b = yavg - nhood.getCenter()[1];
+        double angle = Math.atan2(b, a);
+        double d1 = Math.abs(angle - orientation);
+        double d2 = Math.abs(orientation - angle);
+        if (d2 > d1) {
+            addToAngle(-.1);
+        } else {
+            addToAngle(.1);
+        }
     }
 
     public void move() {
