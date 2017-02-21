@@ -16,7 +16,7 @@ public class Swarm extends ArrayList<Bug> {
     
     public void initialize() {
         this.clear();
-        for (int i = 0; i < 15; i++) {
+        for (int i = 0; i < Globals.SWARM_SIZE; i++) {
             int x = Globals.random(10, 90);
             int y = Globals.random(10, 90);
             Bug bug = new Bug(this, x, y);
