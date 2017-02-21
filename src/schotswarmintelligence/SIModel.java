@@ -20,6 +20,10 @@ public class SIModel implements Modelable {
 
     @Override
     public void step() {
+        theGrid.clean();
+        for (Bug bug : theSwarm) {
+            bug.updateLocation();
+        }
         for (Bug bug : theSwarm) {
             bug.setNeighborhood(theGrid.getNeighborhood(bug.getX(), bug.getY()));
             bug.step();
