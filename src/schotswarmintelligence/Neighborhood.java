@@ -34,6 +34,14 @@ public class Neighborhood {
         returnMe[1] = cY;
         return returnMe;
     }
+    
+    public int getHeight() {
+        return grid[0].length;
+    }
+    
+    public int getWidth() {
+        return grid.length;
+    }
 
     @Override
     public String toString() {
