@@ -47,7 +47,7 @@ public class Bug extends SIObject {
             }
         }
     }
-    
+
     public double getAngle() {
         return orientation;
     }
@@ -150,17 +150,19 @@ public class Bug extends SIObject {
                 }
             }
         }
-        double xavg = xsum / count;
-        double yavg = ysum / count;
-        double a = xavg - nhood.getCenter()[0];
-        double b = yavg - nhood.getCenter()[1];
-        double angle = Math.atan2(b, a);
-        double d1 = Math.abs(angle - orientation);
-        double d2 = Math.abs(orientation - angle);
-        if (d2 > d1) {
-            addToAngle(-.1);
-        } else {
-            addToAngle(.1);
+        if (count != 0) {
+            double xavg = xsum / count;
+            double yavg = ysum / count;
+            double a = xavg - nhood.getCenter()[0];
+            double b = yavg - nhood.getCenter()[1];
+            double angle = Math.atan2(b, a);
+            double d1 = Math.abs(angle - orientation);
+            double d2 = Math.abs(orientation - angle);
+            if (d2 > d1) {
+                addToAngle(-.1);
+            } else {
+                addToAngle(.1);
+            }
         }
     }
 
