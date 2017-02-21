@@ -19,6 +19,11 @@ public class Controller extends Thread {
         theModel = m;
     }
 
+    public void reset() {
+        running = false;
+        stepping = false;
+    }
+    
     @Override
     public void run() {
         for (;;) {

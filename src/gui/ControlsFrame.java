@@ -111,6 +111,8 @@ public class ControlsFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_stepButtonActionPerformed
 
     private void resetButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resetButtonActionPerformed
+        theController.reset();
+        theModel.reset();
         theFrame.repaint();
     }//GEN-LAST:event_resetButtonActionPerformed
 

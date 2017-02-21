@@ -18,6 +18,12 @@ public class SIModel implements Modelable {
         theGrid.setValue(x, y, value);
     }
 
+    public void reset() {
+        theSwarm = new Swarm(this);
+        theSwarm.initialize();
+        theGrid = new SIGrid();
+    }
+    
     @Override
     public void step() {
         theGrid.clean();
