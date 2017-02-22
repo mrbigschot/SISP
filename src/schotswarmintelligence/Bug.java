@@ -11,9 +11,9 @@ public class Bug extends SIObject {
 
     Swarm theSwarm;
     double speed;
-    double orientation; // given in degrees, stored in radians, 0 is along +x axis
+    double orientation; // given in degrees, stored in radians, 0 is along +x axis, PI/2 is along +y axis
 
-    Neighborhood nhood;
+    Neighborhood nHoodC, nHoodP;
 
     public Bug() {
 
@@ -27,6 +27,18 @@ public class Bug extends SIObject {
 
     public void setSpeed(double s) {
         this.speed = s;
+    }
+
+    public void addToSpeed(double d) {
+        if ((speed + d < 0)) {
+            speed = 0;
+        } else {
+            if (speed + d > Globals.MAX_SPEED) {
+                speed = Globals.MAX_SPEED;
+            } else {
+                speed += d;
+            }
+        }
     }
 
     public double getSpeed() {
@@ -53,7 +65,11 @@ public class Bug extends SIObject {
     }
 
     public void setNeighborhood(Neighborhood n) {
-        this.nhood = n;
+        this.nHoodP = this.nHoodC;
+        this.nHoodC = n;
+        if (nHoodP == null) {
+            nHoodP = nHoodC;
+        }
     }
 
     @Override
@@ -67,83 +83,133 @@ public class Bug extends SIObject {
     }
 
     public void step() {
-        if (Globals.DEBUG) {
-            System.out.println(nhood.toString());
-        }
         update();
         move();
     }
 
     public void update() {
-        avoidCollision();
-//        matchVel();
-        towardCenter();
+//        avoidCollision();
+        matchVel();
+//        towardCenter();
     }
 
     private void avoidCollision() {
-        int xmin = Math.max(0, nhood.getCenter()[0] - 5);
-        int xmax = Math.min(nhood.getWidth(), nhood.getCenter()[0] + 5);
-        int ymin = Math.max(0, nhood.getCenter()[1] - 5);
-        int ymax = Math.min(nhood.getWidth(), nhood.getCenter()[1] + 5);
+        int xmin = Math.max(0, nHoodC.getCenter()[0] - 5);
+        int xmax = Math.min(nHoodC.getWidth(), nHoodC.getCenter()[0] + 5);
+        int ymin = Math.max(0, nHoodC.getCenter()[1] - 5);
+        int ymax = Math.min(nHoodC.getWidth(), nHoodC.getCenter()[1] + 5);
         for (int ix = xmin; ix < xmax; ix++) {
             for (int iy = ymin; iy < ymax; iy++) {
-                if (!(ix == nhood.getCenter()[0] && iy == nhood.getCenter()[1]) && (nhood.getGrid()[ix][iy] == 2)) {
-                    addToAngle(.1);
+                if (!(ix == nHoodC.getCenter()[0] && iy == nHoodC.getCenter()[1]) && (nHoodC.getGrid()[ix][iy] == 2)) {
+                    addToAngle(.3);
                 }
             }
         }
     }
 
     private void matchVel() {
-        double avgSpd = swarmVel();
-        if (avgSpd > speed) {
-            speed += .1;
-        } else {
-            if (avgSpd < speed) {
-                speed -= .1;
+        double[] d = calcVel();
+        if (d[2] != 0) {
+            double dAngle = orientation - d[3];
+            if (dAngle < Math.PI) {
+                if (dAngle < 0) {
+                    if (dAngle < -Math.PI) {
+                        addToAngle(-.2);
+                    } else {
+                        // -pi < d < 0
+                        addToAngle(.2);
+                    }
+                } else {
+                    // 0 < d < pi
+                    addToAngle(-.2);
+                }
             } else {
-
+                // pi < d
+                addToAngle(.2);
             }
-        }
-        double avgAng = swarmAng();
-        if (avgAng > orientation) {
-            orientation += .1;
-        } else {
-            if (avgAng < orientation) {
-                orientation -= .1;
-            } else {
 
+            double dSpeed = d[2] - speed;
+            if (dSpeed > 0) {
+                addToSpeed(.1);
+            } else {
+                if (dSpeed < 0) {
+                    addToSpeed(.1);
+                }
+            }
+
+            if (Globals.DEBUG) {
+                System.out.println("dSpeed = " + dSpeed);
+                System.out.println("dAngle = " + dAngle);
             }
         }
     }
 
-    private double swarmVel() {
-        double sum = 0;
-        for (Bug neighbor : theSwarm) {
-            if (!neighbor.equals(this)) {
-                sum += neighbor.getSpeed();
-            }
+    private double[] calcVel() {
+        double[] comC = centerOfMass(nHoodC);
+        double[] comP = centerOfMass(nHoodP);
+        double dx = comC[0] - comP[0];
+        double dy = comC[1] - comP[1];
+        double mag = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+        double angle = Math.atan2(dy, dx);
+        if (Globals.DEBUG) {
+            System.out.println("My position = (" + x + ", " + y + ")");
+            System.out.println("My speed = " + speed);
+            System.out.println("COM = (" + comC[0] + ", " + comC[1] + ")");
+            System.out.println("dX: " + dx);
+            System.out.println("dY: " + dy);
+            System.out.println("mag = " + mag);
+            System.out.println("angle = " + angle);
+            System.out.println("\n");
         }
-        return sum / (theSwarm.size() - 1);
-    }
-
-    private double swarmAng() {
-        double sum = 0;
-        for (Bug neighbor : theSwarm) {
-            if (!neighbor.equals(this)) {
-                sum += neighbor.getAngle();
-            }
-        }
-        return sum / (theSwarm.size() - 1);
+        double[] returnMe = new double[4];
+        returnMe[0] = dx;
+        returnMe[1] = dy;
+        returnMe[2] = mag;
+        returnMe[3] = angle;
+        return returnMe;
     }
 
     private void towardCenter() {
+        double[] com = centerOfMass(nHoodC);
+        if (!((com[0] == nHoodC.getCenter()[0]) && (com[1] == nHoodC.getCenter()[1]))) {
+            double a = com[0] - nHoodC.getCenter()[0];
+            double b = com[1] - nHoodC.getCenter()[1];
+            double angle = Math.atan2(b, a);
+            double d = orientation - angle;
+            if (Globals.DEBUG) {
+                System.out.println("POS = (" + x + ", " + y + ")");
+                System.out.println("COM = (" + com[0] + ", " + com[1] + ")");
+                System.out.println("Relative COM = (" + a + ", " + b + ")");
+                System.out.println("angle = " + angle);
+                System.out.println("angle - orient = " + d);
+            }
+            if (d < Math.PI) {
+                if (d < 0) {
+                    if (d < -Math.PI) {
+                        addToAngle(-.1);
+                    } else {
+                        // -pi < d < 0
+                        addToAngle(.1);
+                    }
+                } else {
+                    // 0 < d < pi
+                    addToAngle(-.1);
+                }
+            } else {
+                // pi < d
+                addToAngle(.1);
+            }
+        }
+    }
+
+    private double[] centerOfMass(Neighborhood grid) {
+        double[] returnMe = new double[2];
         double xsum = 0;
         double ysum = 0;
         int count = 0;
-        for (int ix = 0; ix < nhood.getWidth(); ix++) {
-            for (int iy = 0; iy < nhood.getHeight(); iy++) {
-                if (!(ix == nhood.getCenter()[0] && iy == nhood.getCenter()[1]) && (nhood.getGrid()[ix][iy] == 2)) {
+        for (int ix = 0; ix < grid.getWidth(); ix++) {
+            for (int iy = 0; iy < grid.getHeight(); iy++) {
+                if (!(ix == grid.getCenter()[0] && iy == grid.getCenter()[1]) && (grid.getGrid()[ix][iy] == 2)) {
                     xsum += ix;
                     ysum += iy;
                     count++;
@@ -153,17 +219,13 @@ public class Bug extends SIObject {
         if (count != 0) {
             double xavg = xsum / count;
             double yavg = ysum / count;
-            double a = xavg - nhood.getCenter()[0];
-            double b = yavg - nhood.getCenter()[1];
-            double angle = Math.atan2(b, a);
-            double d1 = Math.abs(angle - orientation);
-            double d2 = Math.abs(orientation - angle);
-            if (d2 > d1) {
-                addToAngle(-.1);
-            } else {
-                addToAngle(.1);
-            }
+            returnMe[0] = xavg;
+            returnMe[1] = yavg;
+        } else {
+            returnMe[0] = grid.getCenter()[0];
+            returnMe[1] = grid.getCenter()[1];
         }
+        return returnMe;
     }
 
     public void move() {
@@ -180,9 +242,9 @@ public class Bug extends SIObject {
     private boolean facingWall(double nx, double ny) {
         double dx = nx - x;
         double dy = ny - y;
-        int gx = (int) (nhood.getCenter()[0] + dx);
-        int gy = (int) (nhood.getCenter()[1] + dy);
-        return nhood.getGrid()[gx][gy] == 1;
+        int gx = (int) (nHoodC.getCenter()[0] + dx);
+        int gy = (int) (nHoodC.getCenter()[1] + dy);
+        return nHoodC.getGrid()[gx][gy] == 1;
     }
 
     @Override
