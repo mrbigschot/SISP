@@ -12,6 +12,10 @@ public class Globals {
     public static int SWARM_SIZE = 150;
     public static double MAX_SPEED = 1.5;
     
+    public static double AVOID_WEIGHT = .5;
+    public static double CONDENSE_WEIGHT = .2;
+    public static double MATCH_WEIGHT = .3;
+    
     public static int random(int min, int max) {
         double d = Math.random();
         double range = (max - min) * d;

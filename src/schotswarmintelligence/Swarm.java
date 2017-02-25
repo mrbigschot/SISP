@@ -22,7 +22,7 @@ public class Swarm extends ArrayList<Bug> {
             for (int i = 0; i < Globals.SWARM_SIZE; i++) {
                 int x = Globals.random(200, 300);
                 int y = Globals.random(200, 300);
-                Bug bug = new Bug(this, x, y);
+                Bug bug = new Bug(this, x, y, Globals.AVOID_WEIGHT, Globals.MATCH_WEIGHT, Globals.CONDENSE_WEIGHT);
                 bug.setAngle(Globals.random(0, 2 * Math.PI));
                 bug.setSpeed(1);
                 this.add(bug);
