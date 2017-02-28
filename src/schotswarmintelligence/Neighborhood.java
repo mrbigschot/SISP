@@ -23,6 +23,10 @@ public class Neighborhood {
         return grid;
     }
 
+    public int get(int x, int y) {
+        return grid[x][y];
+    }
+    
     public void setCenter(int x, int y) {
         cX = x;
         cY = y;

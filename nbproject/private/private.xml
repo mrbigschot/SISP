@@ -4,12 +4,12 @@
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
             <file>file:/Users/PAUL/Documents/School/WU/2017S/CS496/SISP/src/schotswarmintelligence/Globals.java</file>
-            <file>file:/Users/PAUL/Documents/School/WU/2017S/CS496/SISP/src/schotswarmintelligence/SchotSwarmIntelligence.java</file>
+            <file>file:/Users/PAUL/Documents/School/WU/2017S/CS496/SISP/src/gui/SIFrame.java</file>
             <file>file:/Users/PAUL/Documents/School/WU/2017S/CS496/SISP/src/schotswarmintelligence/Bug.java</file>
             <file>file:/Users/PAUL/Documents/School/WU/2017S/CS496/SISP/src/schotswarmintelligence/Swarm.java</file>
-            <file>file:/Users/PAUL/Documents/School/WU/2017S/CS496/SISP/src/schotswarmintelligence/SIModel.java</file>
             <file>file:/Users/PAUL/Documents/School/WU/2017S/CS496/SISP/src/gui/ControlsFrame.java</file>
             <file>file:/Users/PAUL/Documents/School/WU/2017S/CS496/SISP/src/mvc/Controller.java</file>
+            <file>file:/Users/PAUL/Documents/School/WU/2017S/CS496/SISP/src/schotswarmintelligence/SIGrid.java</file>
         </group>
     </open-files>
 </project-private>
