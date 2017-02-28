@@ -65,7 +65,7 @@ public class Controller extends Thread {
         return theModel;
     }
 
-    boolean getRunning() {
+    public boolean getRunning() {
         return running;
     }
 

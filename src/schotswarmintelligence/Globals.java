@@ -9,7 +9,7 @@ public class Globals {
     public static int WIDTH = 800;
     public static int HEIGHT = 500;
     public static int BUG_SIGHT = 25;
-    public static int SWARM_SIZE = 150;
+    public static int SWARM_SIZE = 50;
     public static double MAX_SPEED = 1.5;
     
     public static double AVOID_WEIGHT = .5;
@@ -28,8 +28,8 @@ public class Globals {
         return range + min;
     }
     
-    public static boolean coinFlip() {
-        return Math.random() < .5;
+    public static boolean coinFlip(double chance) {
+        return Math.random() < chance;
     }
     
 }

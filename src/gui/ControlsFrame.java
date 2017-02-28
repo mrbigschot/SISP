@@ -24,11 +24,21 @@ public class ControlsFrame extends javax.swing.JFrame {
         theController = c;
     }
 
+    public void init() {
+    }
+
+    public void reset() {
+        theController.reset();
+        theModel.reset();
+        theFrame.repaint();
+        runButton.setSelected(theController.getRunning());
+    }
+
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
+        bindingGroup = new org.jdesktop.beansbinding.BindingGroup();
 
-        runButton = new javax.swing.JButton();
         stepButton = new javax.swing.JButton();
         resetButton = new javax.swing.JButton();
         timeSlider = new javax.swing.JSlider();
@@ -46,15 +56,10 @@ public class ControlsFrame extends javax.swing.JFrame {
         jLabel6 = new javax.swing.JLabel();
         condenseSlider = new javax.swing.JSlider();
         jLabel7 = new javax.swing.JLabel();
+        sizeTF = new javax.swing.JTextField();
+        runButton = new javax.swing.JToggleButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-
-        runButton.setText("RUN");
-        runButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                runButtonActionPerformed(evt);
-            }
-        });
 
         stepButton.setText("STEP");
         stepButton.addActionListener(new java.awt.event.ActionListener() {
@@ -144,6 +149,16 @@ public class ControlsFrame extends javax.swing.JFrame {
 
         jLabel7.setText("Weights:");
 
+        org.jdesktop.beansbinding.Binding binding = org.jdesktop.beansbinding.Bindings.createAutoBinding(org.jdesktop.beansbinding.AutoBinding.UpdateStrategy.READ_WRITE, sizeSlider, org.jdesktop.beansbinding.ELProperty.create("${value}"), sizeTF, org.jdesktop.beansbinding.BeanProperty.create("text"));
+        bindingGroup.addBinding(binding);
+
+        runButton.setText("RUN");
+        runButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                runButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -154,13 +169,15 @@ public class ControlsFrame extends javax.swing.JFrame {
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                         .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 74, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(timeSlider, javax.swing.GroupLayout.DEFAULT_SIZE, 308, Short.MAX_VALUE))
+                        .addComponent(timeSlider, javax.swing.GroupLayout.DEFAULT_SIZE, 336, Short.MAX_VALUE))
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                         .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 74, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(sightSlider, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                         .addComponent(jLabel3)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(sizeTF, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(sizeSlider, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
@@ -175,13 +192,15 @@ public class ControlsFrame extends javax.swing.JFrame {
                             .addComponent(matchSlider, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(condenseSlider, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(runButton, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(stepButton, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(testButton, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(testButton, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE)))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(debugButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -202,7 +221,9 @@ public class ControlsFrame extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(sizeSlider, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel3))
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jLabel3)
+                        .addComponent(sizeTF, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGap(18, 18, 18)
                 .addComponent(jLabel7)
                 .addGap(18, 18, 18)
@@ -211,15 +232,11 @@ public class ControlsFrame extends javax.swing.JFrame {
                     .addComponent(avoidSlider, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel5)
-                        .addGap(13, 13, 13))
+                    .addComponent(jLabel5)
                     .addComponent(matchSlider, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel6)
-                        .addGap(13, 13, 13))
+                    .addComponent(jLabel6)
                     .addComponent(condenseSlider, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 110, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -233,21 +250,18 @@ public class ControlsFrame extends javax.swing.JFrame {
                 .addContainerGap())
         );
 
+        bindingGroup.bind();
+
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void runButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_runButtonActionPerformed
-        theController.toggleRunning();
-    }//GEN-LAST:event_runButtonActionPerformed
-
     private void stepButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_stepButtonActionPerformed
         theController.toggleStepping();
+        runButton.setSelected(theController.getRunning());
     }//GEN-LAST:event_stepButtonActionPerformed
 
     private void resetButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resetButtonActionPerformed
-        theController.reset();
-        theModel.reset();
-        theFrame.repaint();
+        reset();
     }//GEN-LAST:event_resetButtonActionPerformed
 
     private void timeSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_timeSliderStateChanged
@@ -256,37 +270,27 @@ public class ControlsFrame extends javax.swing.JFrame {
 
     private void sightSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sightSliderStateChanged
         Globals.BUG_SIGHT = sightSlider.getValue();
-        theController.reset();
-        theModel.reset();
-        theFrame.repaint();
+        reset();
     }//GEN-LAST:event_sightSliderStateChanged
 
     private void debugButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_debugButtonActionPerformed
         Globals.DEBUG = !Globals.DEBUG;
-        theController.reset();
-        theModel.reset();
-        theFrame.repaint();
+        reset();
     }//GEN-LAST:event_debugButtonActionPerformed
 
     private void testButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_testButtonActionPerformed
         Globals.TEST = !Globals.TEST;
-        theController.reset();
-        theModel.reset();
-        theFrame.repaint();
+        reset();
     }//GEN-LAST:event_testButtonActionPerformed
 
     private void sizeSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sizeSliderStateChanged
         Globals.SWARM_SIZE = sizeSlider.getValue();
-        theController.reset();
-        theModel.reset();
-        theFrame.repaint();
+        reset();
     }//GEN-LAST:event_sizeSliderStateChanged
 
     private void avoidSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_avoidSliderStateChanged
         Globals.AVOID_WEIGHT = avoidSlider.getValue() / 100.0;
-        theController.reset();
-        theModel.reset();
-        theFrame.repaint();
+        reset();
     }//GEN-LAST:event_avoidSliderStateChanged
 
     private void matchSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_matchSliderStateChanged
@@ -298,10 +302,12 @@ public class ControlsFrame extends javax.swing.JFrame {
 
     private void condenseSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_condenseSliderStateChanged
         Globals.CONDENSE_WEIGHT = condenseSlider.getValue() / 100.0;
-        theController.reset();
-        theModel.reset();
-        theFrame.repaint();
+        reset();
     }//GEN-LAST:event_condenseSliderStateChanged
+
+    private void runButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_runButtonActionPerformed
+        theController.toggleRunning();
+    }//GEN-LAST:event_runButtonActionPerformed
 
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
@@ -348,12 +354,14 @@ public class ControlsFrame extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel7;
     private javax.swing.JSlider matchSlider;
     private javax.swing.JButton resetButton;
-    private javax.swing.JButton runButton;
+    private javax.swing.JToggleButton runButton;
     private javax.swing.JSlider sightSlider;
     private javax.swing.JSlider sizeSlider;
+    private javax.swing.JTextField sizeTF;
     private javax.swing.JButton stepButton;
     private javax.swing.JToggleButton testButton;
     private javax.swing.JSlider timeSlider;
+    private org.jdesktop.beansbinding.BindingGroup bindingGroup;
     // End of variables declaration//GEN-END:variables
 
 }
