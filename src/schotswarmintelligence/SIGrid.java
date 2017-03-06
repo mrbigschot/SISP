@@ -10,11 +10,18 @@ import java.awt.Graphics;
 public class SIGrid {
 
     int[][] grid;
+    int[][] pher;
     boolean[][] walls;
+    Goal theGoal;
 
     public SIGrid() {
+        theGoal = new Goal();
         grid = new int[Globals.WIDTH][Globals.HEIGHT]; // (x, y)
-
+        pher = new int[Globals.WIDTH][Globals.HEIGHT]; // (x, y)
+        initWalls();
+    }
+    
+    private void initWalls() {
         walls = new boolean[Globals.WIDTH][Globals.HEIGHT]; // (x, y)
         for (int i = 0; i < Globals.HEIGHT; i++) {
             for (int j = 0; j < 5; j++) {
@@ -48,6 +55,13 @@ public class SIGrid {
                 }
             }
         }
+        if (containsGoal(xmin, xmax, ymin, ymax)) {
+            try {
+                nGrid[(int) theGoal.getX() - xmin][(int) theGoal.getY() - ymin] = 9;
+            } catch (Exception e) {
+
+            }
+        }
         return new Neighborhood(nGrid, ix - xmin, iy - ymin);
     }
 
@@ -59,6 +73,17 @@ public class SIGrid {
         grid = new int[Globals.WIDTH][Globals.HEIGHT]; // (x, y)
     }
 
+    public boolean containsGoal(int xmin, int xmax, int ymin, int ymax) {
+        try {
+            int x = (int) theGoal.getX();
+            int y = (int) theGoal.getY();
+            return ((xmin <= x) && (xmax > x))
+                    && ((ymin <= y) && (ymax > y));
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     public void paint(Graphics g) {
         g.setColor(Color.BLACK);
         for (int x = 0; x < Globals.WIDTH; x++) {
@@ -67,6 +92,11 @@ public class SIGrid {
                     g.drawRect(x, y, 1, 1);
                 }
             }
+        }
+        try {
+        theGoal.paint(g);
+        } catch (Exception e) {
+            
         }
     }
 

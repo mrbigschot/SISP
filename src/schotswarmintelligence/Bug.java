@@ -23,6 +23,9 @@ public class Bug extends SIObject {
     int index;
     int turnAway;
 
+    boolean found = false;
+    int goalX, goalY;
+
     Neighborhood nHoodC, nHoodP;
 
     public Bug() {
@@ -42,12 +45,18 @@ public class Bug extends SIObject {
         wMatch = wM;
         wCondense = wC;
     }
+    
+    public void setWeights(double wA, double wM, double wC) {
+        wAvoid = wA;
+        wMatch = wM;
+        wCondense = wC;
+    }
 
     public void setSpeed(double s) {
         this.speed = s;
     }
 
-    public void addToSpeed(double d) {
+    public void accel(double d) {
         if ((speed + d < 0)) {
             speed = 0;
         } else {
@@ -111,11 +120,46 @@ public class Bug extends SIObject {
     public void update() {
         addSpeed = 0;
         addAngle = 0;
-        avoidCollision();
-        matchVel();
-        condense();
-        addToAngle(addAngle);
-        addToSpeed(addSpeed);
+        if (!found) {
+            checkGoal();
+            if (!found) {
+                avoidCollision();
+                matchVel();
+                condense();
+                addToAngle(addAngle);
+                accel(addSpeed);
+            } else {
+                speed = speed * 97 / 100;
+                towardGoal();
+            }
+        } else {
+            speed = speed * 97 / 100;
+            towardGoal();
+        }
+    }
+
+    private void checkGoal() {
+        for (int ix = 0; ix < nHoodC.getWidth(); ix++) {
+            for (int iy = 0; iy < nHoodC.getHeight(); iy++) {
+                if (nHoodC.get(ix, iy) == 9) {
+                    found = true;
+                    goalX = (int) x + (ix - nHoodC.getCenter()[0]);
+                    goalY = (int) y + (iy - nHoodC.getCenter()[1]);
+                    return;
+                }
+            }
+        }
+        found = false;
+    }
+
+    private void towardGoal() {
+        double rAngle = 0;
+        double angle = Math.atan2(goalY, goalX);
+        rAngle = matchAngle(angle);
+        if (Globals.DEBUG) {
+            System.out.println("angle = " + angle);
+        }
+        addAngle += rAngle;
     }
 
     private void avoidCollision() {
@@ -128,12 +172,12 @@ public class Bug extends SIObject {
             } else {
                 angle = angle % (2 * Math.PI);
             }
-            if (Globals.DEBUG) {
-                System.out.println("B" + index);
-                System.out.println("\tPOS: (" + x + ", " + y + ")");
-                System.out.println("\tCOM:(" + com[0] + ", " + com[1] + ")");
-                System.out.println("\tθ: " + angle);
-            }
+//            if (Globals.DEBUG) {
+//                System.out.println("B" + index);
+//                System.out.println("\tPOS: (" + x + ", " + y + ")");
+//                System.out.println("\tCOM:(" + com[0] + ", " + com[1] + ")");
+//                System.out.println("\tθ: " + angle);
+//            }
             rAngle = matchAngle(angle);
         }
         addAngle += wAvoid * rAngle;
@@ -144,22 +188,8 @@ public class Bug extends SIObject {
         double rSpeed = 0;
         double[] d = calcVel();
         if (d[2] != 0) {
-            // if (angle (d[3]) is in the Bug's "shadow") {
-            //     if (can go slower) {
-            //         slow down
-            //     } else {
-            //         turn toward angle
-            //     }
-            // } else {
-            //     turn toward angle
-            //     match speed
-            // }
             double diffAngle = Math.abs(orientation - d[3]);
-            if (Globals.DEBUG) {
-                System.out.println("diffAngle: " + diffAngle);
-            }
             if ((diffAngle == Math.PI)) {
-//            if ((diffAngle < 5 * Math.PI / 4) && (diffAngle > 3 * Math.PI / 4)) {
                 if (speed > 0) {
                     rSpeed = -.1;
                 } else {
@@ -181,18 +211,18 @@ public class Bug extends SIObject {
         double dy = comC[1] - comP[1];
         double mag = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
         double angle = Math.atan2(dy, dx);
-        if (Globals.DEBUG) {
-            System.out.println("B" + index);
-            System.out.println("\tPOS: (" + nHoodC.cX + ", " + nHoodC.cY + ")");
-            System.out.println("\tspeed: " + speed);
-            System.out.println("\tangle: " + orientation);
-            System.out.println("COM = (" + comC[0] + ", " + comC[1] + ")");
-            System.out.println("\tdX: " + dx);
-            System.out.println("\tdY: " + dy);
-            System.out.println("\tmag = " + mag);
-            System.out.println("\tangle = " + angle);
-            System.out.println("\n");
-        }
+//        if (Globals.DEBUG) {
+//            System.out.println("B" + index);
+//            System.out.println("\tPOS: (" + nHoodC.cX + ", " + nHoodC.cY + ")");
+//            System.out.println("\tspeed: " + speed);
+//            System.out.println("\tangle: " + orientation);
+//            System.out.println("COM = (" + comC[0] + ", " + comC[1] + ")");
+//            System.out.println("\tdX: " + dx);
+//            System.out.println("\tdY: " + dy);
+//            System.out.println("\tmag = " + mag);
+//            System.out.println("\tangle = " + angle);
+//            System.out.println("\n");
+//        }
         double[] returnMe = new double[4];
         returnMe[0] = dx;
         returnMe[1] = dy;
@@ -207,13 +237,13 @@ public class Bug extends SIObject {
         if (!((com[0] == 0) && (com[1] == 0))) {
             double angle = Math.atan2(com[1], com[0]);
             rAngle = matchAngle(angle);
-            if (Globals.DEBUG) {
-                System.out.println("B" + index + " condense");
-                System.out.println("\tPOS: (" + x + ", " + y + ")");
-                System.out.println("\tCOM:(" + com[0] + ", " + com[1] + ")");
-                System.out.println("\tθ: " + angle);
-                System.out.println("adjust by: " + rAngle);
-            }
+//            if (Globals.DEBUG) {
+//                System.out.println("B" + index + " condense");
+//                System.out.println("\tPOS: (" + x + ", " + y + ")");
+//                System.out.println("\tCOM:(" + com[0] + ", " + com[1] + ")");
+//                System.out.println("\tθ: " + angle);
+//                System.out.println("adjust by: " + rAngle);
+//            }
         }
         addAngle += wCondense * rAngle;
     }
@@ -226,7 +256,7 @@ public class Bug extends SIObject {
         int count = 0;
         for (int ix = 0; ix < grid.getWidth(); ix++) {
             for (int iy = 0; iy < grid.getHeight(); iy++) {
-                if (!(ix == grid.getCenter()[0] && iy == grid.getCenter()[1]) && (grid.getGrid()[ix][iy] == 2)) {
+                if (!(ix == grid.getCenter()[0] && iy == grid.getCenter()[1]) && (grid.get(ix, iy) == 2)) {
                     xsum += ix;
                     ysum += iy;
                     count++;
@@ -256,7 +286,7 @@ public class Bug extends SIObject {
         int ymax = Math.min(grid.getWidth(), grid.getCenter()[1] + 5);
         for (int ix = xmin; ix < xmax; ix++) {
             for (int iy = ymin; iy < ymax; iy++) {
-                if (!(ix == grid.getCenter()[0] && iy == grid.getCenter()[1]) && (grid.getGrid()[ix][iy] == 2)) {
+                if (!(ix == grid.getCenter()[0] && iy == grid.getCenter()[1]) && (grid.get(ix, iy) == 2)) {
                     xsum += ix;
                     ysum += iy;
                     count++;
