@@ -9,6 +9,7 @@ public class Globals {
     public static int WIDTH = 800;
     public static int HEIGHT = 500;
     public static int BUG_SIGHT = 25;
+    public static int BUG_SMELL = 10;
     public static int SWARM_SIZE = 50;
     public static double MAX_SPEED = 1.5;
     

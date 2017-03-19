@@ -6,30 +6,49 @@ package schotswarmintelligence;
 
 public class Neighborhood {
 
-    int[][] grid;
+    int[][] sight, smell;
     int cX, cY;
+    boolean goal;
+    double gX, gY;
 
-    public Neighborhood(int[][] g, int x, int y) {
-        grid = g;
+    public Neighborhood(int x, int y) {
         cX = x;
         cY = y;
+        goal = false;
     }
 
-    public void setGrid(int[][] g) {
-        grid = g;
+    public void setSight(int[][] s) {
+        sight = s;
     }
 
-    public int[][] getGrid() {
-        return grid;
+    public void setSmell(int[][] s) {
+        smell = s;
     }
 
-    public int get(int x, int y) {
-        return grid[x][y];
+    public int[][] getSight() {
+        return sight;
     }
-    
+
+    public int[][] getSmell() {
+        return smell;
+    }
+
+    public int see(int x, int y) {
+        return sight[x][y];
+    }
+
+    public int smell(int x, int y) {
+        return smell[x][y];
+    }
+
     public void setCenter(int x, int y) {
         cX = x;
         cY = y;
+    }
+    
+    public void setGoal(double x, double y) {
+        gX = x;
+        gY = y;
     }
 
     public int[] getCenter() {
@@ -38,21 +57,25 @@ public class Neighborhood {
         returnMe[1] = cY;
         return returnMe;
     }
-    
+
     public int getHeight() {
-        return grid[0].length;
+        return sight[0].length;
+    }
+
+    public int getWidth() {
+        return sight.length;
     }
     
-    public int getWidth() {
-        return grid.length;
+    public boolean containsGoal() {
+        return goal;
     }
 
     @Override
     public String toString() {
         String returnMe = "Neighborhood centered at: (" + cX + ", " + cY + ")\n";
-        for (int y = 0; y < grid[0].length; y++) {
-            for (int x = 0; x < grid.length; x++) {
-                returnMe += grid[x][y];
+        for (int y = 0; y < sight[0].length; y++) {
+            for (int x = 0; x < sight.length; x++) {
+                returnMe += sight[x][y];
             }
             returnMe += "\n";
         }
