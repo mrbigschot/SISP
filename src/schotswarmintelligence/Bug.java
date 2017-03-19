@@ -45,7 +45,7 @@ public class Bug extends SIObject {
         wMatch = wM;
         wCondense = wC;
     }
-    
+
     public void setWeights(double wA, double wM, double wC) {
         wAvoid = wA;
         wMatch = wM;
@@ -112,30 +112,33 @@ public class Bug extends SIObject {
         theSwarm.updateLocation((int) x, (int) y);
     }
 
-    public void step() {
-        update();
+    public void step(boolean b) {
+        if (found) {
+            speed = speed * 97 / 100;
+            towardGoal();
+        } else {
+            checkGoal();
+            if (found) {
+                System.out.println("smelly");
+                theSwarm.setPher((int) x, (int) y, -20);
+                speed = speed * 97 / 100;
+                towardGoal();
+            }
+        }
+        if (b && !found) {
+            update();
+        }
         move();
     }
 
     public void update() {
         addSpeed = 0;
         addAngle = 0;
-        if (!found) {
-            checkGoal();
-            if (!found) {
-                avoidCollision();
-                matchVel();
-                condense();
-                addToAngle(addAngle);
-                accel(addSpeed);
-            } else {
-                speed = speed * 97 / 100;
-                towardGoal();
-            }
-        } else {
-            speed = speed * 97 / 100;
-            towardGoal();
-        }
+        avoidCollision();
+        matchVel();
+        condense();
+        addToAngle(addAngle);
+        accel(addSpeed);
     }
 
     private void checkGoal() {
@@ -342,7 +345,7 @@ public class Bug extends SIObject {
 //                }
 //            }
 //            addToAngle(turnAway * .1);
-            addToAngle(Math.PI);
+            addToAngle(.5);
         } else {
 //            turnAway = 0;
             x = nx;

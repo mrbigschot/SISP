@@ -21,7 +21,7 @@ public class Goal extends SIObject {
 
     @Override
     public void paint(Graphics g) {
-        g.setColor(Color.GREEN);
+        g.setColor(Color.RED);
         g.fillOval((int) x, (int) y, 5, 5);
     }
 
