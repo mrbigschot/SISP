@@ -23,8 +23,9 @@ public class Bug extends SIObject {
     int index;
     int turnAway;
 
-    boolean found = false;
-    int goalX, goalY;
+    boolean foundGoal = false;
+    boolean smellPher = false;
+    double goalX, goalY;
 
     Neighborhood nHoodC, nHoodP;
 
@@ -113,22 +114,24 @@ public class Bug extends SIObject {
     }
 
     public void step(boolean b) {
-        if (found) {
-            speed = speed * 97 / 100;
-            towardGoal();
+        if (foundGoal) {
+            foundStep();
         } else {
-            checkGoal();
-            if (found) {
-                System.out.println("smelly");
-                theSwarm.setPher((int) x, (int) y, -20);
-                speed = speed * 97 / 100;
-                towardGoal();
+            check();
+            if (foundGoal) {
+                foundStep();
             }
         }
-        if (b && !found) {
+        if (b && !foundGoal) {
             update();
         }
         move();
+    }
+
+    private void foundStep() {
+        theSwarm.setPher((int) x, (int) y, 255);
+//        speed = speed * 97 / 100;
+        towardGoal();
     }
 
     public void update() {
@@ -137,32 +140,17 @@ public class Bug extends SIObject {
         avoidCollision();
         matchVel();
         condense();
-        addToAngle(addAngle);
-        accel(addSpeed);
     }
 
-    private void checkGoal() {
-        for (int ix = 0; ix < nHoodC.getWidth(); ix++) {
-            for (int iy = 0; iy < nHoodC.getHeight(); iy++) {
-                if (nHoodC.get(ix, iy) == 9) {
-                    found = true;
-                    goalX = (int) x + (ix - nHoodC.getCenter()[0]);
-                    goalY = (int) y + (iy - nHoodC.getCenter()[1]);
-                    return;
-                }
-            }
-        }
-        found = false;
+    private void check() {
+        foundGoal = nHoodC.containsGoal();
+        goalX = nHoodC.gX;
+        goalY = nHoodC.gY;
     }
 
     private void towardGoal() {
-        double rAngle = 0;
-        double angle = Math.atan2(goalY, goalX);
-        rAngle = matchAngle(angle);
-        if (Globals.DEBUG) {
-            System.out.println("angle = " + angle);
-        }
-        addAngle += rAngle;
+        double angle = Math.atan2(goalY - y, goalX - x);
+        addAngle = matchAngle(angle);
     }
 
     private void avoidCollision() {
@@ -259,7 +247,7 @@ public class Bug extends SIObject {
         int count = 0;
         for (int ix = 0; ix < grid.getWidth(); ix++) {
             for (int iy = 0; iy < grid.getHeight(); iy++) {
-                if (!(ix == grid.getCenter()[0] && iy == grid.getCenter()[1]) && (grid.get(ix, iy) == 2)) {
+                if (!(ix == grid.getCenter()[0] && iy == grid.getCenter()[1]) && (grid.see(ix, iy) == 2)) {
                     xsum += ix;
                     ysum += iy;
                     count++;
@@ -289,7 +277,7 @@ public class Bug extends SIObject {
         int ymax = Math.min(grid.getWidth(), grid.getCenter()[1] + 5);
         for (int ix = xmin; ix < xmax; ix++) {
             for (int iy = ymin; iy < ymax; iy++) {
-                if (!(ix == grid.getCenter()[0] && iy == grid.getCenter()[1]) && (grid.get(ix, iy) == 2)) {
+                if (!(ix == grid.getCenter()[0] && iy == grid.getCenter()[1]) && (grid.see(ix, iy) == 2)) {
                     xsum += ix;
                     ysum += iy;
                     count++;
@@ -334,6 +322,8 @@ public class Bug extends SIObject {
     }
 
     public void move() {
+        addToAngle(addAngle);
+        accel(addSpeed);
         double nx = x + (speed * Math.cos(orientation));
         double ny = y + (speed * Math.sin(orientation));
         if (facingWall(nx, ny)) {
@@ -358,7 +348,7 @@ public class Bug extends SIObject {
         double dy = ny - y;
         int gx = (int) (nHoodC.getCenter()[0] + dx);
         int gy = (int) (nHoodC.getCenter()[1] + dy);
-        return nHoodC.getGrid()[gx][gy] == 1;
+        return nHoodC.getSight()[gx][gy] == 1;
     }
 
     @Override
