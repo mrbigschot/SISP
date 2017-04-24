@@ -59,6 +59,13 @@ public class Controller extends Thread {
     private void step() {
         theModel.step();
         theView.display();
+        if (theModel.isDone()) {
+            running = false;
+        }
+    }
+    
+    public void display() {
+        theView.display();
     }
 
     Modelable getModel() {
