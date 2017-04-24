@@ -10,89 +10,139 @@ import java.awt.Graphics;
 public class Bug extends SIObject {
 
     Swarm theSwarm;
+    int swarmID;
+    Color color;
     double speed;
     double accel;
     double orientation; // radians, 0 is along +x axis, PI/2 is along +y axis
     double addSpeed;
     double addAngle;
+    int pherOut = 0;
+    int thresh = 100;
+    int hX, hY;
+    int carry = 0;
 
     double wAvoid = 1;
     double wCondense = 1;
     double wMatch = 1;
 
     int index;
-    int turnAway;
+    boolean turning, turnLeft;
 
     boolean foundGoal = false;
-    boolean smellPher = false;
+    boolean seeGoal = false;
+    boolean ignore = false;
+    int[] pherMem;
+    boolean carrying = false;
     double goalX, goalY;
 
     Neighborhood nHoodC, nHoodP;
 
     public Bug() {
-
+        ignore = Globals.coinFlip(.5);
+        pherMem = new int[5];
     }
 
-    public Bug(Swarm s, double x, double y) {
+    public Bug(Swarm s, double x, double y, Color c) {
         this();
         theSwarm = s;
         this.x = x;
         this.y = y;
+        this.hX = (int) x;
+        this.hY = (int) y;
+        color = c;
     }
 
-    public Bug(Swarm s, double x, double y, double wA, double wM, double wC) {
-        this(s, x, y);
-        wAvoid = wA;
-        wMatch = wM;
-        wCondense = wC;
-    }
-
-    public void setWeights(double wA, double wM, double wC) {
-        wAvoid = wA;
-        wMatch = wM;
-        wCondense = wC;
-    }
-
-    public void setSpeed(double s) {
-        this.speed = s;
-    }
-
-    public void accel(double d) {
-        if ((speed + d < 0)) {
-            speed = 0;
+    public void step() {
+        calcPher();
+        check();
+        if (carrying) {
+            returning();
         } else {
-            if (speed + d > Globals.MAX_SPEED) {
-                speed = Globals.MAX_SPEED;
+            searching();
+        }
+        emitPher();
+        move();
+    }
+
+    private void searching() {
+        if (nHoodC.containsGoal() || foundGoal) {
+            towardGoal();
+        } else {
+            update();
+        }
+    }
+
+    private void returning() {
+        if ((Math.abs(hX - x) < 5) && (Math.abs(hY - y) < 5)) {
+            carrying = false;
+            seeGoal = false;
+            theSwarm.deposit(carry);
+            carry = 0;
+        } else {
+            speed = 1;
+            double angle = Math.atan2(theSwarm.hY - y, theSwarm.hX - x);
+            addAngle = matchAngle(angle);
+        }
+    }
+
+    private void defaultStep() {
+        addSpeed = 0;
+        addAngle = 0;
+        if (speed < 1) {
+            addSpeed += .1;
+        }
+        avoidCollision();
+        matchVel();
+        condense();
+    }
+
+    public void update() {
+        if (!ignore && (hasSmelled())) {
+            speed = .1;
+            if (pherMem[0] != 0) {
+                speed = 1;
             } else {
-                speed += d;
+                addAngle = Math.PI / 4;
+            }
+        } else {
+            defaultStep();
+        }
+    }
+
+    private boolean hasSmelled() {
+        for (int i = 0; i < pherMem.length; i++) {
+            if (pherMem[i] >= thresh) {
+                return true;
             }
         }
+        return false;
     }
-
-    public double getSpeed() {
-        return speed;
-    }
-
-    public void setAngle(double a) {
-        orientation = a;
-        if (orientation < 0) {
-            orientation = (orientation % (2 * Math.PI)) + (2 * Math.PI);
-        } else {
-            orientation = orientation % (2 * Math.PI);
+    
+    private void calcPher() {
+        pherOut = 0;
+        if (pherMem[0] != 0) {
+            pherOut = 25;
+        }
+        if (seeGoal) {
+            pherOut = 100;
+        }
+        if (carrying) {
+            pherOut = 150;
         }
     }
 
-    public void addToAngle(double a) {
-        orientation += a;
-        if (orientation < 0) {
-            orientation = (orientation % (2 * Math.PI)) + (2 * Math.PI);
-        } else {
-            orientation = orientation % (2 * Math.PI);
+    private void check() {
+        seeGoal = nHoodC.containsGoal();
+        if (seeGoal) {
+            foundGoal = true;
+            goalX = nHoodC.gX;
+            goalY = nHoodC.gY;
         }
-    }
-
-    public double getAngle() {
-        return orientation;
+        for (int i = pherMem.length - 1; i < 0; i--) {
+            pherMem[i] = pherMem[i - 1];
+        }
+        pherMem[0] = nHoodC.smell(nHoodC.getCenter()[0], nHoodC.getCenter()[1]);
     }
 
     public void setNeighborhood(Neighborhood n) {
@@ -103,54 +153,26 @@ public class Bug extends SIObject {
         }
     }
 
-    @Override
-    public void paint(Graphics g) {
-        g.setColor(Color.BLUE);
-        g.fillOval((int) x, (int) y, 3, 3);
-    }
-
     public void updateLocation() {
         theSwarm.updateLocation((int) x, (int) y);
     }
 
-    public void step(boolean b) {
-        if (foundGoal) {
-            foundStep();
-        } else {
-            check();
-            if (foundGoal) {
-                foundStep();
-            }
-        }
-        if (b && !foundGoal) {
-            update();
-        }
-        move();
-    }
-
-    private void foundStep() {
-        theSwarm.setPher((int) x, (int) y, 255);
-//        speed = speed * 97 / 100;
-        towardGoal();
-    }
-
-    public void update() {
-        addSpeed = 0;
-        addAngle = 0;
-        avoidCollision();
-        matchVel();
-        condense();
-    }
-
-    private void check() {
-        foundGoal = nHoodC.containsGoal();
-        goalX = nHoodC.gX;
-        goalY = nHoodC.gY;
-    }
-
     private void towardGoal() {
-        double angle = Math.atan2(goalY - y, goalX - x);
-        addAngle = matchAngle(angle);
+        if ((Math.abs(goalX - x) < 3) && (Math.abs(goalY - y) < 3)) {
+            carry = theSwarm.gather();
+            if (carry != 0) {
+                carrying = true;
+                seeGoal = false;
+            } else {
+                foundGoal = false;
+            }
+        } else {
+            if (speed < 1) {
+                addSpeed = .1;
+            }
+            double angle = Math.atan2(goalY - y, goalX - x);
+            addAngle = matchAngle(angle);
+        }
     }
 
     private void avoidCollision() {
@@ -297,6 +319,9 @@ public class Bug extends SIObject {
     }
 
     private double matchAngle(double a) {
+        if (a < 0) {
+            a += 2 * Math.PI;
+        }
         double delta = orientation - a; // -2pi to 2pi
         if (delta < Math.PI) {
             if (delta < 0) {
@@ -327,20 +352,24 @@ public class Bug extends SIObject {
         double nx = x + (speed * Math.cos(orientation));
         double ny = y + (speed * Math.sin(orientation));
         if (facingWall(nx, ny)) {
-//            if (turnAway == 0) {
-//                if (Globals.coinFlip(.5)) {
-//                    turnAway = 1;
-//                } else {
-//                    turnAway = -1;
-//                }
-//            }
-//            addToAngle(turnAway * .1);
-            addToAngle(.5);
+            if (!turning) {
+                turnLeft = Globals.coinFlip(.5);
+            }
+            if (turnLeft) {
+                addToAngle(-.5);
+            } else {
+                addToAngle(.5);
+            }
+            turning = true;
         } else {
-//            turnAway = 0;
+            turning = false;
             x = nx;
             y = ny;
         }
+    }
+
+    private void emitPher() {
+        theSwarm.setPher((int) x, (int) y, pherOut);
     }
 
     private boolean facingWall(double nx, double ny) {
@@ -348,7 +377,55 @@ public class Bug extends SIObject {
         double dy = ny - y;
         int gx = (int) (nHoodC.getCenter()[0] + dx);
         int gy = (int) (nHoodC.getCenter()[1] + dy);
-        return nHoodC.getSight()[gx][gy] == 1;
+        return nHoodC.see(gx, gy) == 1;
+    }
+
+    public void setWeights(double wA, double wM, double wC) {
+        wAvoid = wA;
+        wMatch = wM;
+        wCondense = wC;
+    }
+
+    public void setSpeed(double s) {
+        this.speed = s;
+    }
+
+    public void accel(double d) {
+        if ((speed + d < 0)) {
+            speed = 0;
+        } else {
+            if (speed + d > Globals.MAX_SPEED) {
+                speed = Globals.MAX_SPEED;
+            } else {
+                speed += d;
+            }
+        }
+    }
+
+    public double getSpeed() {
+        return speed;
+    }
+
+    public void setAngle(double a) {
+        orientation = a;
+        if (orientation < 0) {
+            orientation = (orientation % (2 * Math.PI)) + (2 * Math.PI);
+        } else {
+            orientation = orientation % (2 * Math.PI);
+        }
+    }
+
+    public void addToAngle(double a) {
+        orientation += a;
+        if (orientation < 0) {
+            orientation = (orientation % (2 * Math.PI)) + (2 * Math.PI);
+        } else {
+            orientation = orientation % (2 * Math.PI);
+        }
+    }
+
+    public double getAngle() {
+        return orientation;
     }
 
     @Override
@@ -360,6 +437,12 @@ public class Bug extends SIObject {
 
         return returnMe;
 
+    }
+
+    @Override
+    public void paint(Graphics g) {
+        g.setColor(color);
+        g.fillOval((int) x, (int) y, 3, 3);
     }
 
 }

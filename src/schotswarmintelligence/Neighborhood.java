@@ -8,8 +8,8 @@ public class Neighborhood {
 
     int[][] sight, smell;
     int cX, cY;
-    boolean goal;
-    double gX, gY;
+    boolean goal, swarm;
+    double gX, gY, sX, sY;
 
     public Neighborhood(int x, int y) {
         cX = x;
@@ -45,7 +45,12 @@ public class Neighborhood {
         cX = x;
         cY = y;
     }
-    
+
+    public void setSwarm(int x, int y) {
+        sX = x;
+        sY = y;
+    }
+
     public void setGoal(double x, double y) {
         gX = x;
         gY = y;
@@ -65,9 +70,13 @@ public class Neighborhood {
     public int getWidth() {
         return sight.length;
     }
-    
+
     public boolean containsGoal() {
         return goal;
+    }
+
+    public boolean containsHive(int id) {
+        return swarm;
     }
 
     @Override
