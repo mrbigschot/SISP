@@ -32,6 +32,10 @@ public class Swarm extends ArrayList<Bug> {
         return color;
     }
 
+    public int getTotal() {
+        return total;
+    }
+
     public int getX() {
         return hX;
     }
@@ -62,7 +66,7 @@ public class Swarm extends ArrayList<Bug> {
             Bug bug = new Bug(this, x, y, color);
             bug.setAngle(Globals.random(0, 2 * Math.PI));
             bug.setSpeed(1);
-            bug.setWeights(Globals.AVOID_WEIGHT, Globals.MATCH_WEIGHT, Globals.CONDENSE_WEIGHT);
+            bug.setWeights(Globals.A_AVOID_WEIGHT, Globals.A_MATCH_WEIGHT, Globals.A_CONDENSE_WEIGHT);
             this.add(bug);
         }
     }
@@ -72,16 +76,31 @@ public class Swarm extends ArrayList<Bug> {
         Bug bug = new Bug(this, hX, hY, color);
         bug.setAngle(Globals.random(0, 2 * Math.PI));
         bug.setSpeed(1);
-        if (rand < Globals.EXPLORE_RATE) {
-            // explorer
-            bug.setWeights(1, 0, 0);
-        } else {
-            if (rand < Globals.CONDENSE_RATE + Globals.EXPLORE_RATE) {
-                // condenser
-                bug.setWeights(0, 0, 1);
+        if (swarmID == 8) {
+            if (rand < Globals.A_EXPLORE_RATE) {
+                // explorer
+                bug.setWeights(1, 0, 0);
             } else {
-                // matcher
-                bug.setWeights(0, 1, 0);
+                if (rand < Globals.A_CONDENSE_RATE + Globals.A_EXPLORE_RATE) {
+                    // condenser
+                    bug.setWeights(0, 0, 1);
+                } else {
+                    // matcher
+                    bug.setWeights(0, 1, 0);
+                }
+            }
+        } else {
+            if (rand < Globals.B_EXPLORE_RATE) {
+                // explorer
+                bug.setWeights(1, 0, 0);
+            } else {
+                if (rand < Globals.B_CONDENSE_RATE + Globals.B_EXPLORE_RATE) {
+                    // condenser
+                    bug.setWeights(0, 0, 1);
+                } else {
+                    // matcher
+                    bug.setWeights(0, 1, 0);
+                }
             }
         }
         this.add(bug);

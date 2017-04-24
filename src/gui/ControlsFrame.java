@@ -66,6 +66,7 @@ public class ControlsFrame extends javax.swing.JFrame {
         jLabel10 = new javax.swing.JLabel();
         setButton = new javax.swing.JButton();
         contestButton = new javax.swing.JToggleButton();
+        saveButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -203,6 +204,13 @@ public class ControlsFrame extends javax.swing.JFrame {
             }
         });
 
+        saveButton.setText("SAVE");
+        saveButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                saveButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -262,12 +270,11 @@ public class ControlsFrame extends javax.swing.JFrame {
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(setButton)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(setButton, javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(jLabel10, javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(saveButton, javax.swing.GroupLayout.Alignment.TRAILING))
                         .addContainerGap())))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jLabel10)
-                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -298,7 +305,9 @@ public class ControlsFrame extends javax.swing.JFrame {
                 .addComponent(jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, 13, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(setButton)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 123, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(saveButton)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 88, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel2)
                     .addComponent(sightSlider, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -363,19 +372,19 @@ public class ControlsFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_sizeSliderStateChanged
 
     private void avoidSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_avoidSliderStateChanged
-        Globals.AVOID_WEIGHT = avoidSlider.getValue() / 100.0;
+        Globals.A_AVOID_WEIGHT = avoidSlider.getValue() / 100.0;
         reset();
     }//GEN-LAST:event_avoidSliderStateChanged
 
     private void matchSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_matchSliderStateChanged
-        Globals.MATCH_WEIGHT = matchSlider.getValue() / 100.0;
+        Globals.A_MATCH_WEIGHT = matchSlider.getValue() / 100.0;
         theController.reset();
         theModel.reset();
         theFrame.repaint();
     }//GEN-LAST:event_matchSliderStateChanged
 
     private void condenseSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_condenseSliderStateChanged
-        Globals.CONDENSE_WEIGHT = condenseSlider.getValue() / 100.0;
+        Globals.A_CONDENSE_WEIGHT = condenseSlider.getValue() / 100.0;
         reset();
     }//GEN-LAST:event_condenseSliderStateChanged
 
@@ -400,16 +409,20 @@ public class ControlsFrame extends javax.swing.JFrame {
         double exp = Integer.parseInt(expTF.getText()) / 100.0;
         double swrm = Integer.parseInt(swarmTF.getText()) / 100.0;
         if ((exp + swrm) <= 100) {
-            Globals.EXPLORE_RATE = exp;
-            Globals.CONDENSE_RATE = swrm;
+            Globals.A_EXPLORE_RATE = exp;
+            Globals.A_CONDENSE_RATE = swrm;
         }
         reset();
     }//GEN-LAST:event_setButtonActionPerformed
 
     private void contestButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_contestButtonActionPerformed
-        Globals.CONTEST = !Globals.CONTEST;
+        Globals.toggleContest();
         reset();
     }//GEN-LAST:event_contestButtonActionPerformed
+
+    private void saveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveButtonActionPerformed
+        theModel.save();
+    }//GEN-LAST:event_saveButtonActionPerformed
 
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
@@ -463,6 +476,7 @@ public class ControlsFrame extends javax.swing.JFrame {
     private javax.swing.JToggleButton pherButton;
     private javax.swing.JButton resetButton;
     private javax.swing.JToggleButton runButton;
+    private javax.swing.JButton saveButton;
     private javax.swing.JButton setButton;
     private javax.swing.JSlider sightSlider;
     private javax.swing.JSlider sizeSlider;

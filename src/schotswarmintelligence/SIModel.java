@@ -1,5 +1,6 @@
 package schotswarmintelligence;
 
+import io.MyWriter;
 import java.awt.Graphics;
 import mvc.Modelable;
 
@@ -74,6 +75,16 @@ public class SIModel implements Modelable {
 
     public int gather() {
         return theGrid.gather();
+    }
+    
+    public void save() {
+        if (Globals.CONTEST) {
+            MyWriter mw = new MyWriter("data");
+            boolean awins;
+            awins = swarmA.getTotal() > swarmB.getTotal();
+            mw.print(Globals.saveString(awins));
+            mw.close();
+        }
     }
 
 }
