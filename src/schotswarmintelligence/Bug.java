@@ -18,7 +18,6 @@ public class Bug extends SIObject {
     double addSpeed;
     double addAngle;
     int pherOut = 0;
-    int thresh = 100;
     int hX, hY;
     int carry = 0;
 
@@ -31,15 +30,17 @@ public class Bug extends SIObject {
 
     boolean foundGoal = false;
     boolean seeGoal = false;
-    boolean ignore = false;
     int[] pherMem;
     boolean carrying = false;
     double goalX, goalY;
 
+    int wallCounter;
+    int smellDelay;
+
     Neighborhood nHoodC, nHoodP;
+    Grabbable grabbed;
 
     public Bug() {
-        ignore = Globals.coinFlip(.5);
         pherMem = new int[5];
     }
 
@@ -77,8 +78,10 @@ public class Bug extends SIObject {
         if ((Math.abs(hX - x) < 5) && (Math.abs(hY - y) < 5)) {
             carrying = false;
             seeGoal = false;
+//            foundGoal = false;
             theSwarm.deposit(carry);
             carry = 0;
+            addAngle = Math.PI;
         } else {
             speed = 1;
             double angle = Math.atan2(theSwarm.hY - y, theSwarm.hX - x);
@@ -92,18 +95,33 @@ public class Bug extends SIObject {
         if (speed < 1) {
             addSpeed += .1;
         }
-        avoidCollision();
-        matchVel();
-        condense();
+        if (!Globals.CONTROL) {
+            avoidCollision();
+            matchVel();
+            condense();
+        }
     }
 
     public void update() {
-        if (!ignore && (hasSmelled())) {
-            speed = .1;
-            if (pherMem[0] != 0) {
-                speed = 1;
+        if (hasSmelled()) {
+            if (smellDelay == 0) {
+                smellDelay = 5;
+                speed = .8;
+                int[] smelliest = upGradient();
+                addAngle = matchAngle(Math.atan2((double) smelliest[1], (double) smelliest[0]));
+//            if (pherMem[0] >= pherMem[1]) {
+//                speed = .5;
+//            } else {
+//                if (Globals.coinFlip(.5)) {
+//                    addAngle = -.1;
+//                } else {
+//                    addAngle = .1;
+//                }
+//            }
             } else {
-                addAngle = Math.PI / 4;
+                if (smellDelay > 0) {
+                    smellDelay--;
+                }
             }
         } else {
             defaultStep();
@@ -111,24 +129,51 @@ public class Bug extends SIObject {
     }
 
     private boolean hasSmelled() {
+        if (Globals.CONTROL) {
+            return false;
+        }
         for (int i = 0; i < pherMem.length; i++) {
-            if (pherMem[i] >= thresh) {
+            if (pherMem[i] > 0) {
                 return true;
             }
         }
         return false;
+
     }
-    
+
+    // checks 4 cardinal directions for highest pheromone value
+    private int[] upGradient() {
+        int cX = nHoodC.getCenter()[0];
+        int cY = nHoodC.getCenter()[1];
+        int mX = cX + 1;
+        int mY = cY;
+        for (int i = -1; i <= 1; i = i + 2) {
+            if (nHoodC.smell(cX + i, cY) > nHoodC.smell(mX, mY)) {
+                mX = cX + i;
+                mY = cY;
+            }
+            if (nHoodC.smell(cX, cY + i) > nHoodC.smell(mX, mY)) {
+                mX = cX;
+                mY = cY + i;
+            }
+        }
+        int[] returnMe = {mX - cX, mY - cY};
+        return returnMe;
+    }
+
     private void calcPher() {
         pherOut = 0;
-        if (pherMem[0] != 0) {
-            pherOut = 25;
+        if (Globals.CONTROL) {
+            return;
         }
-        if (seeGoal) {
-            pherOut = 100;
-        }
-        if (carrying) {
-            pherOut = 150;
+//        if (pherMem[0] != 0) {
+//            pherOut = pherMem[0];
+//        }
+        if (foundGoal) {
+            double dx = x - goalX;
+            double dy = y - goalY;
+            double d = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+            pherOut = Math.max(511 - (int) d, 0);
         }
     }
 
@@ -139,7 +184,7 @@ public class Bug extends SIObject {
             goalX = nHoodC.gX;
             goalY = nHoodC.gY;
         }
-        for (int i = pherMem.length - 1; i < 0; i--) {
+        for (int i = pherMem.length - 1; i > 0; i--) {
             pherMem[i] = pherMem[i - 1];
         }
         pherMem[0] = nHoodC.smell(nHoodC.getCenter()[0], nHoodC.getCenter()[1]);
@@ -159,7 +204,7 @@ public class Bug extends SIObject {
 
     private void towardGoal() {
         if ((Math.abs(goalX - x) < 3) && (Math.abs(goalY - y) < 3)) {
-            carry = theSwarm.gather();
+            carry = nHoodC.getGoal().gather();
             if (carry != 0) {
                 carrying = true;
                 seeGoal = false;
@@ -323,19 +368,24 @@ public class Bug extends SIObject {
             a += 2 * Math.PI;
         }
         double delta = orientation - a; // -2pi to 2pi
+        double returnMe;
         if (delta < Math.PI) {
             if (delta < 0) {
                 if (delta < -Math.PI) {
-                    return -.1;
+                    returnMe = -.1;
                 } else {
-                    return .1;
+                    returnMe = .1;
                 }
             } else {
-                return -.1;
+                returnMe = -.1;
             }
         } else {
-            return .1;
+            returnMe = .1;
         }
+        if (Globals.coinFlip(.1)) {
+            returnMe += .05;
+        }
+        return returnMe;
     }
 
     private double matchSpeed(double s) {
@@ -352,7 +402,7 @@ public class Bug extends SIObject {
         double nx = x + (speed * Math.cos(orientation));
         double ny = y + (speed * Math.sin(orientation));
         if (facingWall(nx, ny)) {
-            if (!turning) {
+            if (wallCounter == 0) {
                 turnLeft = Globals.coinFlip(.5);
             }
             if (turnLeft) {
@@ -360,16 +410,20 @@ public class Bug extends SIObject {
             } else {
                 addToAngle(.5);
             }
-            turning = true;
+            wallCounter = 10;
         } else {
-            turning = false;
+            if (wallCounter > 0) {
+                wallCounter--;
+            }
             x = nx;
             y = ny;
         }
     }
 
     private void emitPher() {
-        theSwarm.setPher((int) x, (int) y, pherOut);
+        if (pherOut != 0) {
+            theSwarm.setPher((int) x, (int) y, pherOut);
+        }
     }
 
     private boolean facingWall(double nx, double ny) {
@@ -442,6 +496,12 @@ public class Bug extends SIObject {
     @Override
     public void paint(Graphics g) {
         g.setColor(color);
+//        if (pherMem[0] != 0) {
+//            g.setColor(Color.ORANGE);
+//        }
+//        if (foundGoal) {
+//            g.setColor(new Color(200, 200, 255));
+//        }
         g.fillOval((int) x, (int) y, 3, 3);
     }
 
