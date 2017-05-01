@@ -19,7 +19,7 @@ public class Controller extends Thread {
         theModel = m;
     }
 
-    public void reset() {
+    public void restart() {
         running = false;
         stepping = false;
     }

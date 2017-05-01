@@ -49,7 +49,11 @@ public class Swarm extends ArrayList<Bug> {
         if (!Globals.TEST) {
             hX = Globals.random(100, Globals.WIDTH - 100);
             hY = Globals.random(100, Globals.HEIGHT - 100);
-            for (int i = 0; i < Globals.SWARM_SIZE; i++) {
+            if (!Globals.CONTROL) {
+                for (int i = 0; i < Globals.SWARM_SIZE; i++) {
+                    spawn();
+                }
+            } else {
                 spawn();
             }
         } else {
@@ -143,10 +147,6 @@ public class Swarm extends ArrayList<Bug> {
                 bug.step();
             }
         }
-    }
-
-    public int gather() {
-        return theModel.gather();
     }
 
 }

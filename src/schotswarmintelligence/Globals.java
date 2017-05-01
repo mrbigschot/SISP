@@ -6,16 +6,20 @@ public class Globals {
 
     public static boolean DEBUG = false;
     public static boolean TEST = false;
+    public static boolean CONTROL = false;
     public static boolean PHEREMODE = false;
     public static boolean CONTEST = false;
 
     public static int WIDTH = 800;
     public static int HEIGHT = 500;
-    public static int NUM_WALLS = 15;
+    public static double MAX_SPEED = 1.5;
+    public static int MASS = 500;
+    
+    public static int NUM_WALLS = 0;
+    public static int NUM_GOALS = 1;
     public static int BUG_SIGHT = 25;
     public static int BUG_SMELL = 25;
     public static int SWARM_SIZE = 100;
-    public static double MAX_SPEED = 1.5;
 
     public static double A_AVOID_WEIGHT = .5;
     public static double A_CONDENSE_WEIGHT = .2;

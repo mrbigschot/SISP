@@ -7,14 +7,14 @@ package schotswarmintelligence;
 import java.awt.Color;
 import java.awt.Graphics;
 
-public class Goal extends SIObject implements Grabbable {
+public class Goal extends SIObject {
 
     int mass;
     double speed;
     double angle;
 
     public Goal() {
-        mass = 500;
+        mass = Globals.MASS;
         if (Globals.TEST) {
             this.x = 400;
             this.y = 400;
@@ -29,18 +29,22 @@ public class Goal extends SIObject implements Grabbable {
         this.x = x;
         this.y = y;
     }
+    
+    public void reset() {
+        mass = Globals.MASS;
+    }
 
     @Override
     public void paint(Graphics g) {
-        g.setColor(new Color(50, 150, 0));
-        g.fillOval((int) x, (int) y, 5, 5);
+        if (mass == 0) {
+            g.setColor(Color.BLACK);
+        } else {
+            g.setColor(new Color(0, 150, 0));
+        }
+        int rad = (int) (mass / 50.0);
+        g.fillOval((int) x - rad, (int) y - rad, rad, rad);
     }
 
-    @Override
-    public void applyForce(double dir, double f, int m) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-    
     public boolean isDepleted() {
         return mass == 0;
     }

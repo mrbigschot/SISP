@@ -10,6 +10,7 @@ public class Neighborhood {
     int cX, cY;
     boolean goal, swarm;
     double gX, gY, sX, sY;
+    Goal g;
 
     public Neighborhood(int x, int y) {
         cX = x;
@@ -24,6 +25,10 @@ public class Neighborhood {
     public void setSmell(int[][] s) {
         smell = s;
     }
+    
+    public void setGoal(Goal g) {
+        this.g = g;
+    }
 
     public int[][] getSight() {
         return sight;
@@ -31,6 +36,10 @@ public class Neighborhood {
 
     public int[][] getSmell() {
         return smell;
+    }
+    
+    public Goal getGoal() {
+        return g;
     }
 
     public int see(int x, int y) {
@@ -51,7 +60,7 @@ public class Neighborhood {
         sY = y;
     }
 
-    public void setGoal(double x, double y) {
+    public void setGoalPos(double x, double y) {
         gX = x;
         gY = y;
     }

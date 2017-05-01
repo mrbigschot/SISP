@@ -14,23 +14,37 @@ public class SIGrid {
     int[][] pher;
     boolean[][] walls;
     Goal theGoal;
+    GoalList goals;
     Swarm swarmA, swarmB;
 
     public SIGrid() {
         grid = new int[Globals.WIDTH][Globals.HEIGHT]; // (x, y)
         pher = new int[Globals.WIDTH][Globals.HEIGHT]; // (x, y)
         initWalls();
-        createGoal();
+        createGoals();
     }
 
-    private void createGoal() {
+    public void restart() {
+        for (Goal g : goals) {
+            g.reset();
+        }
+    }
+
+    private Goal createGoal() {
         int x = Globals.random(10, Globals.WIDTH - 10);
         int y = Globals.random(10, Globals.HEIGHT - 10);
         while (walls[x][y]) {
             x = Globals.random(10, Globals.WIDTH - 10);
             y = Globals.random(10, Globals.HEIGHT - 10);
         }
-        theGoal = new Goal(x, y);
+        return new Goal(x, y);
+    }
+
+    private void createGoals() {
+        goals = new GoalList();
+        for (int i = 0; i < Globals.NUM_GOALS; i++) {
+            goals.add(createGoal());
+        }
     }
 
     public void setSwarmA(Swarm s) {
@@ -60,7 +74,7 @@ public class SIGrid {
             }
         }
         if (!Globals.TEST) {
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < Globals.NUM_WALLS; i++) {
                 int x = Globals.random(5, Globals.WIDTH - 5);
                 int y = Globals.random(5, Globals.HEIGHT - 5);
                 int l = Globals.random(25, 200);
@@ -140,8 +154,11 @@ public class SIGrid {
         if (containsGoal(xmin, xmax, ymin, ymax)) {
             try {
                 nSight[(int) theGoal.getX() - xmin][(int) theGoal.getY() - ymin] = 9; // goal overwrites everything
-                returnMe.setGoal(theGoal.getX(), theGoal.getY());
-                returnMe.goal = true;
+                if (!theGoal.isDepleted()) {
+                    returnMe.setGoalPos(theGoal.getX(), theGoal.getY());
+                    returnMe.goal = true;
+                }
+                returnMe.setGoal(theGoal);
             } catch (Exception e) {
                 returnMe.goal = false;
             }
@@ -156,12 +173,12 @@ public class SIGrid {
     }
 
     public void setPher(int x, int y, int value) {
-        pher[x][y] = Math.min(pher[x][y] + value, 511);
+        pher[x][y] = value;
     }
 
     private int[][] addPher(int[][] g, int x, int y, int value) {
         if (!walls[x][y]) {
-            g[x][y] = Math.min(g[x][y] + value, 255);
+            g[x][y] = Math.min(g[x][y] + value, 511);
         }
         return g;
     }
@@ -194,17 +211,24 @@ public class SIGrid {
     }
 
     public boolean containsGoal(int xmin, int xmax, int ymin, int ymax) {
-        try {
-            if (theGoal.isDepleted()) {
-                return false;
+        for (Goal goal : goals) {
+            int x = (int) goal.getX();
+            int y = (int) goal.getY();
+            if (((xmin <= x) && (xmax > x))
+                    && ((ymin <= y) && (ymax > y))) {
+                theGoal = goal;
+                return true;
             }
-            int x = (int) theGoal.getX();
-            int y = (int) theGoal.getY();
-            return ((xmin <= x) && (xmax > x))
-                    && ((ymin <= y) && (ymax > y));
-        } catch (Exception e) {
-            return false;
         }
+        return false;
+//        try {
+//            int x = (int) theGoal.getX();
+//            int y = (int) theGoal.getY();
+//            return ((xmin <= x) && (xmax > x))
+//                    && ((ymin <= y) && (ymax > y));
+//        } catch (Exception e) {
+//            return false;
+//        }
     }
 
     public boolean containsSwarmA(int xmin, int xmax, int ymin, int ymax) {
@@ -245,11 +269,7 @@ public class SIGrid {
                     }
                 }
             }
-            try {
-                theGoal.paint(g);
-            } catch (Exception e) {
-
-            }
+            goals.paint(g);
         }
     }
 
@@ -257,16 +277,17 @@ public class SIGrid {
         for (int x = 0; x < Globals.WIDTH; x++) {
             for (int y = 0; y < Globals.HEIGHT; y++) {
                 if (pher[x][y] > 0) {
-                    if (pher[x][y] < 255) {
-                        try {
-                            g.setColor(new Color(0, pher[x][y], 0));
-                        } catch (Exception e) {
-                            System.out.println("" + pher[x][y] + " is weird");
-                            throw (e);
-                        }
-                    } else {
-                        g.setColor(new Color(0, 255, 0));
-                    }
+                    g.setColor(new Color(0, (int) (pher[x][y] / 2.0), 0));
+//                    if (pher[x][y] < 255) {
+//                        try {
+//                            g.setColor(new Color(0, pher[x][y], 0));
+//                        } catch (Exception e) {
+//                            System.out.println("" + pher[x][y] + " is weird");
+//                            throw (e);
+//                        }
+//                    } else {
+//                        g.setColor(new Color(0, 255, 0));
+//                    }
                     g.fillRect(x, y, 1, 1);
                 } else {
                     g.setColor(Color.BLACK);
@@ -288,12 +309,8 @@ public class SIGrid {
         return returnMe;
     }
 
-    public int gather() {
-        return theGoal.gather();
-    }
-
     boolean isDone() {
-        return theGoal.isDepleted();
+        return false;
     }
 
 }

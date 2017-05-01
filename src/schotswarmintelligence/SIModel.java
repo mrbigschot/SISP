@@ -27,6 +27,15 @@ public class SIModel implements Modelable {
         theGrid.setPher(x, y, val);
     }
 
+    public void restart() {
+        swarmA = new Swarm(this, 8);
+        if (Globals.CONTEST) {
+            swarmB = new Swarm(this, 7);
+        }
+        theGrid.restart();
+        initialize();
+    }
+
     public void reset() {
         swarmA = new Swarm(this, 8);
         if (Globals.CONTEST) {
@@ -57,9 +66,16 @@ public class SIModel implements Modelable {
             swarmB.step();
         }
     }
-    
+
     @Override
     public boolean isDone() {
+        if (Globals.NUM_GOALS != 0) {
+            int swSum = swarmA.getTotal();
+            if (swarmB != null) {
+                swSum += swarmB.getTotal();
+            }
+            return swSum == Globals.MASS * Globals.NUM_GOALS;
+        }
         return false;
     }
 
@@ -73,10 +89,6 @@ public class SIModel implements Modelable {
         }
     }
 
-    public int gather() {
-        return theGrid.gather();
-    }
-    
     public void save() {
         if (Globals.CONTEST) {
             MyWriter mw = new MyWriter("data");
