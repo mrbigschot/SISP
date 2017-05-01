@@ -1,4 +1,4 @@
-package schotswarmintelligence;
+package swarmintelligence;
 
 import gui.SIFrame;
 

@@ -1,8 +1,4 @@
-/*
- Copyright © 2016 by Paul K. Schot
- All rights reserved.
- */
-package schotswarmintelligence;
+package swarmintelligence;
 
 import java.awt.Color;
 import java.awt.Graphics;
@@ -25,7 +21,6 @@ public class Bug extends SIObject {
     double wCondense = 1;
     double wMatch = 1;
 
-    int index;
     boolean turning, turnLeft;
 
     boolean foundGoal = false;
@@ -39,6 +34,7 @@ public class Bug extends SIObject {
 
     Neighborhood nHoodC, nHoodP;
     Grabbable grabbed;
+    boolean grabber = true;
 
     public Bug() {
         pherMem = new int[5];
@@ -52,6 +48,11 @@ public class Bug extends SIObject {
         this.hX = (int) x;
         this.hY = (int) y;
         color = c;
+        if (s.swarmID == 8) {
+            grabber = Globals.coinFlip(Globals.A_GRABBERS);
+        } else {
+            grabber = Globals.coinFlip(Globals.B_GRABBERS);
+        }
     }
 
     public void step() {
@@ -78,7 +79,6 @@ public class Bug extends SIObject {
         if ((Math.abs(hX - x) < 5) && (Math.abs(hY - y) < 5)) {
             carrying = false;
             seeGoal = false;
-//            foundGoal = false;
             theSwarm.deposit(carry);
             carry = 0;
             addAngle = Math.PI;
@@ -86,6 +86,12 @@ public class Bug extends SIObject {
             speed = 1;
             double angle = Math.atan2(theSwarm.hY - y, theSwarm.hX - x);
             addAngle = matchAngle(angle);
+            if (grabbed != null && ((Math.abs(hX - x) > 10) || (Math.abs(hY - y) > 10))) {
+                double xf = Math.cos(orientation) * speed;
+                double yf = Math.sin(orientation) * speed;
+                grabbed.applyForce(xf, yf);
+                grabbed = null;
+            }
         }
     }
 
@@ -109,15 +115,6 @@ public class Bug extends SIObject {
                 speed = .8;
                 int[] smelliest = upGradient();
                 addAngle = matchAngle(Math.atan2((double) smelliest[1], (double) smelliest[0]));
-//            if (pherMem[0] >= pherMem[1]) {
-//                speed = .5;
-//            } else {
-//                if (Globals.coinFlip(.5)) {
-//                    addAngle = -.1;
-//                } else {
-//                    addAngle = .1;
-//                }
-//            }
             } else {
                 if (smellDelay > 0) {
                     smellDelay--;
@@ -166,14 +163,11 @@ public class Bug extends SIObject {
         if (Globals.CONTROL) {
             return;
         }
-//        if (pherMem[0] != 0) {
-//            pherOut = pherMem[0];
-//        }
         if (foundGoal) {
             double dx = x - goalX;
             double dy = y - goalY;
             double d = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
-            pherOut = Math.max(511 - (int) d, 0);
+            pherOut = Math.max(511 - (int) d, 1);
         }
     }
 
@@ -203,13 +197,19 @@ public class Bug extends SIObject {
     }
 
     private void towardGoal() {
-        if ((Math.abs(goalX - x) < 3) && (Math.abs(goalY - y) < 3)) {
-            carry = nHoodC.getGoal().gather();
+        if ((Math.abs(goalX - x) < 5) && (Math.abs(goalY - y) < 5)) {
+            addToAngle(Math.PI);
+            if (nHoodC.containsGoal()) {
+                carry = nHoodC.getGoal().gather();
+            }
             if (carry != 0) {
                 carrying = true;
                 seeGoal = false;
             } else {
                 foundGoal = false;
+            }
+            if (grabber) {
+                grabbed = nHoodC.getGoal();
             }
         } else {
             if (speed < 1) {
@@ -502,7 +502,11 @@ public class Bug extends SIObject {
 //        if (foundGoal) {
 //            g.setColor(new Color(200, 200, 255));
 //        }
-        g.fillOval((int) x, (int) y, 3, 3);
+        int d = 3;
+        if (carry != 0) {
+            d = 4;
+        }
+        g.fillOval((int) x - d / 2, (int) y - d / 2, d, d);
     }
 
 }

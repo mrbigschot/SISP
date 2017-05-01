@@ -1,8 +1,4 @@
-/*
- Copyright © 2016 by Paul K. Schot
- All rights reserved.
- */
-package schotswarmintelligence;
+package swarmintelligence;
 
 import java.awt.Color;
 import java.awt.Graphics;
@@ -28,6 +24,7 @@ public class SIGrid {
         for (Goal g : goals) {
             g.reset();
         }
+        pher = new int[Globals.WIDTH][Globals.HEIGHT]; // (x, y)
     }
 
     private Goal createGoal() {
@@ -73,32 +70,30 @@ public class SIGrid {
                 walls[i][Globals.HEIGHT - 1 - j] = true;
             }
         }
-        if (!Globals.TEST) {
-            for (int i = 0; i < Globals.NUM_WALLS; i++) {
-                int x = Globals.random(5, Globals.WIDTH - 5);
-                int y = Globals.random(5, Globals.HEIGHT - 5);
-                int l = Globals.random(25, 200);
-                int max;
-                if (Globals.coinFlip(.5)) {
-                    // horizontal
-                    max = Math.min(x + l, Globals.WIDTH);
-                    for (int ix = x; ix < max; ix++) {
-                        walls[ix][y] = true;
-                        walls[ix][y + 1] = true;
-                        walls[ix][y + 2] = true;
-                        walls[ix][y + 3] = true;
-                        walls[ix][y + 4] = true;
-                    }
-                } else {
-                    // vertical
-                    max = Math.min(y + l, Globals.HEIGHT);
-                    for (int iy = y; iy < max; iy++) {
-                        walls[x][iy] = true;
-                        walls[x + 1][iy] = true;
-                        walls[x + 2][iy] = true;
-                        walls[x + 3][iy] = true;
-                        walls[x + 4][iy] = true;
-                    }
+        for (int i = 0; i < Globals.NUM_WALLS; i++) {
+            int x = Globals.random(5, Globals.WIDTH - 5);
+            int y = Globals.random(5, Globals.HEIGHT - 5);
+            int l = Globals.random(25, 200);
+            int max;
+            if (Globals.coinFlip(.5)) {
+                // horizontal
+                max = Math.min(x + l, Globals.WIDTH);
+                for (int ix = x; ix < max; ix++) {
+                    walls[ix][y] = true;
+                    walls[ix][y + 1] = true;
+                    walls[ix][y + 2] = true;
+                    walls[ix][y + 3] = true;
+                    walls[ix][y + 4] = true;
+                }
+            } else {
+                // vertical
+                max = Math.min(y + l, Globals.HEIGHT);
+                for (int iy = y; iy < max; iy++) {
+                    walls[x][iy] = true;
+                    walls[x + 1][iy] = true;
+                    walls[x + 2][iy] = true;
+                    walls[x + 3][iy] = true;
+                    walls[x + 4][iy] = true;
                 }
             }
         }
@@ -216,19 +211,13 @@ public class SIGrid {
             int y = (int) goal.getY();
             if (((xmin <= x) && (xmax > x))
                     && ((ymin <= y) && (ymax > y))) {
-                theGoal = goal;
-                return true;
+                if (!goal.isDepleted()) {
+                    theGoal = goal;
+                    return true;
+                }
             }
         }
         return false;
-//        try {
-//            int x = (int) theGoal.getX();
-//            int y = (int) theGoal.getY();
-//            return ((xmin <= x) && (xmax > x))
-//                    && ((ymin <= y) && (ymax > y));
-//        } catch (Exception e) {
-//            return false;
-//        }
     }
 
     public boolean containsSwarmA(int xmin, int xmax, int ymin, int ymax) {
@@ -309,8 +298,14 @@ public class SIGrid {
         return returnMe;
     }
 
-    boolean isDone() {
+    public boolean isDone() {
         return false;
+    }
+
+    public void step() {
+        for (Goal g : goals) {
+            g.step();
+        }
     }
 
 }

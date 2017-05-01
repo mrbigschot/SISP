@@ -2,7 +2,7 @@ package gui;
 
 import java.awt.Graphics;
 import mvc.*;
-import schotswarmintelligence.SIModel;
+import swarmintelligence.SIModel;
 
 public class SIPanel extends javax.swing.JPanel implements Viewable {
 

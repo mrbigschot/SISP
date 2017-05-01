@@ -1,11 +1,10 @@
-package schotswarmintelligence;
+package swarmintelligence;
 
 import io.MyReader;
 
 public class Globals {
 
     public static boolean DEBUG = false;
-    public static boolean TEST = false;
     public static boolean CONTROL = false;
     public static boolean PHEREMODE = false;
     public static boolean CONTEST = false;
@@ -13,7 +12,7 @@ public class Globals {
     public static int WIDTH = 800;
     public static int HEIGHT = 500;
     public static double MAX_SPEED = 1.5;
-    public static int MASS = 500;
+    public static int MASS = 1000;
     
     public static int NUM_WALLS = 0;
     public static int NUM_GOALS = 1;
@@ -21,19 +20,20 @@ public class Globals {
     public static int BUG_SMELL = 25;
     public static int SWARM_SIZE = 100;
 
-    public static double A_AVOID_WEIGHT = .5;
-    public static double A_CONDENSE_WEIGHT = .2;
-    public static double A_MATCH_WEIGHT = .3;
+    public static double A_TOP_WEIGHT = 1;
+    public static double A_MID_WEIGHT = 0;
+    public static double A_LOW_WEIGHT = 0;
     public static double A_EXPLORE_RATE = .3;
     public static double A_CONDENSE_RATE = .2;
 
-    public static double B_AVOID_WEIGHT = .5;
-    public static double B_CONDENSE_WEIGHT = .2;
-    public static double B_MATCH_WEIGHT = .3;
+    public static double B_TOP_WEIGHT = 1;
+    public static double B_MID_WEIGHT = 0;
+    public static double B_LOW_WEIGHT = 0;
     public static double B_EXPLORE_RATE = .3;
     public static double B_CONDENSE_RATE = .2;
-
-    public static final Bug GOD = new Bug();
+    
+    public static double A_GRABBERS = 0.0;
+    public static double B_GRABBERS = 0.0;
 
     public static int random(int min, int max) {
         double d = Math.random();
@@ -60,17 +60,20 @@ public class Globals {
     public static String saveString(boolean a) {
         String returnMe = "";
         if (a) {
-            returnMe += A_AVOID_WEIGHT + ";";
-            returnMe += A_CONDENSE_WEIGHT + ";";
-            returnMe += A_MATCH_WEIGHT + ";";
+            returnMe += A_TOP_WEIGHT + ";";
+            returnMe += A_MID_WEIGHT + ";";
+            returnMe += A_LOW_WEIGHT + ";";
             returnMe += A_EXPLORE_RATE + ";";
-            returnMe += A_CONDENSE_RATE;
+            returnMe += A_CONDENSE_RATE + ";";
+            returnMe += A_GRABBERS + ";";
+            
         } else {
-            returnMe += B_AVOID_WEIGHT + ";";
-            returnMe += B_CONDENSE_WEIGHT + ";";
-            returnMe += B_MATCH_WEIGHT + ";";
+            returnMe += B_TOP_WEIGHT + ";";
+            returnMe += B_MID_WEIGHT + ";";
+            returnMe += B_LOW_WEIGHT + ";";
             returnMe += B_EXPLORE_RATE + ";";
-            returnMe += B_CONDENSE_RATE;
+            returnMe += B_CONDENSE_RATE + ";";
+            returnMe += B_GRABBERS + ";";
         }
         return returnMe;
     }
@@ -85,7 +88,7 @@ public class Globals {
     }
     
     public static double[] loadParams() {
-        double[] returnMe = new double[5];
+        double[] returnMe = new double[6];
         MyReader mr = new MyReader("data");
         while (mr.hasMoreData()) {
             String line = mr.giveMeTheNextLine();
@@ -99,18 +102,24 @@ public class Globals {
 
     public static void setParams(boolean a, double[] d) {
         if (a) {
-            A_AVOID_WEIGHT = d[0];
-            A_CONDENSE_WEIGHT = d[1];
-            A_MATCH_WEIGHT = d[2];
+            A_TOP_WEIGHT = d[0];
+            A_MID_WEIGHT = d[1];
+            A_LOW_WEIGHT = d[2];
             A_EXPLORE_RATE = d[3];
             A_CONDENSE_RATE = d[4];
+            A_GRABBERS = d[5];
         } else {
-            B_AVOID_WEIGHT = d[0];
-            B_CONDENSE_WEIGHT = d[1];
-            B_MATCH_WEIGHT = d[2];
+            B_TOP_WEIGHT = d[0];
+            B_MID_WEIGHT = d[1];
+            B_LOW_WEIGHT = d[2];
             B_EXPLORE_RATE = d[3];
             B_CONDENSE_RATE = d[4];
+            B_GRABBERS = d[5];
         }
+    }
+    
+    public static int totalMass() {
+        return NUM_GOALS * MASS;
     }
 
 }

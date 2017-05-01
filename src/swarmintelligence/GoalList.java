@@ -1,8 +1,4 @@
-/*
- Copyright © 2016 by Paul K. Schot
- All rights reserved.
- */
-package schotswarmintelligence;
+package swarmintelligence;
 
 import java.awt.Graphics;
 import java.util.ArrayList;

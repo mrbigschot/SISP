@@ -1,4 +1,4 @@
-package schotswarmintelligence;
+package swarmintelligence;
 
 import io.MyWriter;
 import java.awt.Graphics;
@@ -60,6 +60,7 @@ public class SIModel implements Modelable {
 
     @Override
     public void step() {
+        theGrid.step();
         theGrid.clean();
         swarmA.step();
         if (Globals.CONTEST) {
@@ -74,7 +75,7 @@ public class SIModel implements Modelable {
             if (swarmB != null) {
                 swSum += swarmB.getTotal();
             }
-            return swSum == Globals.MASS * Globals.NUM_GOALS;
+            return swSum == Globals.totalMass();
         }
         return false;
     }

@@ -1,6 +1,5 @@
 /*
- Copyright © 2016 by Paul K. Schot
- All rights reserved.
+ MyReader class written by Jim Levenick
  */
 package io;
 

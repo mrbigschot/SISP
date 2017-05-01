@@ -1,8 +1,4 @@
- /*
- Copyright © 2016 by Paul K. Schot
- All rights reserved.
- */
-package schotswarmintelligence;
+package swarmintelligence;
 
 import java.awt.Color;
 import java.awt.Graphics;
@@ -13,12 +9,11 @@ public class Swarm extends ArrayList<Bug> {
     SIModel theModel;
     int hX, hY;
     Color color;
-    int resource, total;
+    int total;
     int swarmID;
 
     public Swarm(SIModel m, int id) {
         theModel = m;
-        resource = 0;
         total = 0;
         swarmID = id;
         if (swarmID == 8) {
@@ -46,32 +41,10 @@ public class Swarm extends ArrayList<Bug> {
 
     public void init(SIGrid g) {
         this.clear();
-        if (!Globals.TEST) {
-            hX = Globals.random(100, Globals.WIDTH - 100);
-            hY = Globals.random(100, Globals.HEIGHT - 100);
-            if (!Globals.CONTROL) {
-                for (int i = 0; i < Globals.SWARM_SIZE; i++) {
-                    spawn();
-                }
-            } else {
-                spawn();
-            }
-        } else {
-            testInit();
-        }
-    }
-
-    public void testInit() {
-        hX = 100;
-        hY = 100;
+        hX = Globals.random(100, Globals.WIDTH - 100);
+        hY = Globals.random(100, Globals.HEIGHT - 100);
         for (int i = 0; i < Globals.SWARM_SIZE; i++) {
-            int x = Globals.random(hX - 50, hX + 50);
-            int y = Globals.random(hY - 50, hY + 50);
-            Bug bug = new Bug(this, x, y, color);
-            bug.setAngle(Globals.random(0, 2 * Math.PI));
-            bug.setSpeed(1);
-            bug.setWeights(Globals.A_AVOID_WEIGHT, Globals.A_MATCH_WEIGHT, Globals.A_CONDENSE_WEIGHT);
-            this.add(bug);
+            spawn();
         }
     }
 
@@ -83,27 +56,27 @@ public class Swarm extends ArrayList<Bug> {
         if (swarmID == 8) {
             if (rand < Globals.A_EXPLORE_RATE) {
                 // explorer
-                bug.setWeights(1, 0, 0);
+                bug.setWeights(Globals.A_TOP_WEIGHT, Globals.A_MID_WEIGHT, Globals.A_LOW_WEIGHT);
             } else {
                 if (rand < Globals.A_CONDENSE_RATE + Globals.A_EXPLORE_RATE) {
                     // condenser
-                    bug.setWeights(0, 0, 1);
+                    bug.setWeights(Globals.A_LOW_WEIGHT, Globals.A_MID_WEIGHT, Globals.A_TOP_WEIGHT);
                 } else {
                     // matcher
-                    bug.setWeights(0, 1, 0);
+                    bug.setWeights(Globals.A_LOW_WEIGHT, Globals.A_TOP_WEIGHT, Globals.A_MID_WEIGHT);
                 }
             }
         } else {
             if (rand < Globals.B_EXPLORE_RATE) {
                 // explorer
-                bug.setWeights(1, 0, 0);
+                bug.setWeights(Globals.B_TOP_WEIGHT, Globals.B_MID_WEIGHT, Globals.B_LOW_WEIGHT);
             } else {
                 if (rand < Globals.B_CONDENSE_RATE + Globals.B_EXPLORE_RATE) {
                     // condenser
-                    bug.setWeights(0, 0, 1);
+                    bug.setWeights(Globals.B_LOW_WEIGHT, Globals.B_MID_WEIGHT, Globals.B_TOP_WEIGHT);
                 } else {
                     // matcher
-                    bug.setWeights(0, 1, 0);
+                    bug.setWeights(Globals.B_LOW_WEIGHT, Globals.B_TOP_WEIGHT, Globals.B_MID_WEIGHT);
                 }
             }
         }
@@ -111,7 +84,6 @@ public class Swarm extends ArrayList<Bug> {
     }
 
     public void deposit(int x) {
-        resource += x;
         total += x;
     }
 
@@ -126,26 +98,25 @@ public class Swarm extends ArrayList<Bug> {
     public void paint(Graphics g) {
         g.setColor(color);
         g.fillOval(hX - 5, hY - 5, 10, 10);
-        synchronized (Globals.GOD) {
-            for (Bug bug : this) {
-                bug.paint(g);
-            }
+        for (Bug bug : this) {
+            bug.paint(g);
+        }
+        if (swarmID == 8) {
+            g.fillRect(10, 525, (int) (500.0 * total / Globals.totalMass()), 10);
+            g.drawString("" + total + "/" + Globals.totalMass(), 520, 535);
+        } else {
+            g.fillRect(10, 545, (int) (500.0 * total / Globals.totalMass()), 10);
+            g.drawString("" + total + "/" + Globals.totalMass(), 520, 555);
         }
     }
 
     public void step() {
-//        if (resource > 10) {
-//            spawn();
-//            resource = 0;
-//        }
-        synchronized (Globals.GOD) {
-            for (Bug bug : this) {
-                bug.updateLocation();
-            }
-            for (Bug bug : this) {
-                bug.setNeighborhood(theModel.getNeighborhood(swarmID, bug.getX(), bug.getY()));
-                bug.step();
-            }
+        for (Bug bug : this) {
+            bug.updateLocation();
+        }
+        for (Bug bug : this) {
+            bug.setNeighborhood(theModel.getNeighborhood(swarmID, bug.getX(), bug.getY()));
+            bug.step();
         }
     }
 
