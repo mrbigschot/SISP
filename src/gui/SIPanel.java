@@ -2,7 +2,7 @@ package gui;
 
 import java.awt.Graphics;
 import mvc.*;
-import schotswarmintelligence.SIModel;
+import swarmintelligence.SIModel;
 
 public class SIPanel extends javax.swing.JPanel implements Viewable {
 
@@ -42,6 +42,9 @@ public class SIPanel extends javax.swing.JPanel implements Viewable {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
+
+        setBackground(new java.awt.Color(255, 255, 255));
+        setToolTipText("");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);

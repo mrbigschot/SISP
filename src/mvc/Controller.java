@@ -14,17 +14,25 @@ public class Controller extends Thread {
     }
     
     public Controller(Viewable v, Modelable m) {
+        this.start();
         theView = v;
         theModel = m;
     }
 
+    public void restart() {
+        running = false;
+        stepping = false;
+    }
+    
     @Override
     public void run() {
         for (;;) {
             if (running || stepping) {
                 step();
-                stepping = false;  // only take one step per button press
+                stepping = false; // only take one step per button press
+                delay(); 
             }
+            delay();
         }
     }
 
@@ -45,10 +53,18 @@ public class Controller extends Thread {
     
     public void toggleStepping() {
         stepping = !stepping;
+        running = false;
     }
 
     private void step() {
         theModel.step();
+        theView.display();
+        if (theModel.isDone()) {
+            running = false;
+        }
+    }
+    
+    public void display() {
         theView.display();
     }
 
@@ -56,7 +72,7 @@ public class Controller extends Thread {
         return theModel;
     }
 
-    boolean getRunning() {
+    public boolean getRunning() {
         return running;
     }
 
