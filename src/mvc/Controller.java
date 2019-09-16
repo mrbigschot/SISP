@@ -2,9 +2,8 @@ package mvc;
 
 public class Controller extends Thread {
 
-    boolean running, stepping = false;
-
-    int delay = 10;
+    private boolean running, stepping = false;
+    private int delay = 10;
  
     Viewable theView;
     Modelable theModel;

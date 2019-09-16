@@ -2,6 +2,16 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group/>
+        <group>
+            <file>file:/Users/PAUL/Documents/School/WU/2017S/CS496/SwarmIntelligenceProject/src/environment/SIGrid.java</file>
+            <file>file:/Users/PAUL/Documents/School/WU/2017S/CS496/SwarmIntelligenceProject/src/swarmintelligence/Globals.java</file>
+            <file>file:/Users/PAUL/Documents/School/WU/2017S/CS496/SwarmIntelligenceProject/src/bugs/Swarm.java</file>
+            <file>file:/Users/PAUL/Documents/School/WU/2017S/CS496/SwarmIntelligenceProject/src/gui/ControlsFrame.java</file>
+            <file>file:/Users/PAUL/Documents/School/WU/2017S/CS496/SwarmIntelligenceProject/data</file>
+            <file>file:/Users/PAUL/Documents/School/WU/2017S/CS496/SwarmIntelligenceProject/src/swarmintelligence/SIModel.java</file>
+            <file>file:/Users/PAUL/Documents/School/WU/2017S/CS496/SwarmIntelligenceProject/src/bugs/Bug.java</file>
+            <file>file:/Users/PAUL/Documents/School/WU/2017S/CS496/SwarmIntelligenceProject/src/mvc/Controller.java</file>
+            <file>file:/Users/PAUL/Documents/School/WU/2017S/CS496/SwarmIntelligenceProject/src/gui/SIPanel.java</file>
+        </group>
     </open-files>
 </project-private>
