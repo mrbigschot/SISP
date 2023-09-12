@@ -1,7 +1,7 @@
 package swarmintelligence;
 
 import environment.Neighborhood;
-import environment.SIGrid;
+import environment.Environment;
 import bugs.Swarm;
 import bugs.SwarmConfiguration;
 import java.awt.Graphics;
@@ -9,42 +9,39 @@ import mvc.Modelable;
 
 public class SIModel implements Modelable {
 
-    private SIGrid theGrid;
+    private Environment environment = null;
     public Swarm swarmA, swarmB;
-    private int step = 0;
 
     public SIModel() {
-        swarmA = new Swarm(this, 8);
+        environment = new Environment(this);
+        swarmA = new Swarm(this, Swarm.SWARM_A);
         swarmA.configure(new SwarmConfiguration("data"));
-        if (Globals.CONTEST) {
-            swarmB = new Swarm(this, 7);
-            swarmB.configure(new SwarmConfiguration("data"));
-        }
-        theGrid = new SIGrid(this);
+        swarmB = new Swarm(this, Swarm.SWARM_B);
+        swarmB.configure(new SwarmConfiguration("data"));
         initialize(false);
     }
-
-    public void updateLocation(int x, int y, int value) {
-        theGrid.setValue(x, y, value);
+    
+    private void initialize(boolean lockHives) {
+        swarmA.init(environment, lockHives);
+        swarmB.init(environment, lockHives);
+        if (Globals.CONTEST) {
+            environment.setSwarms(swarmA, swarmB);
+        } else {
+            environment.setSwarms(swarmA, null);
+        }
     }
-
-    public void emitPheremone(int x, int y, int val, int channel) {
-        theGrid.emitPheremone(x, y, val, channel);
-    }
-
+    
+    // restart the simulation while keeping all variables unchanged
     public void restart() {
         swarmA.reset();
         if (Globals.CONTEST) {
-            if (swarmB == null) {
-                swarmB = new Swarm(this, 7);
-                swarmB.configure(new SwarmConfiguration("data"));
-            }
             swarmB.reset();
         }
-        theGrid.restart(true, true);
+        environment.restart(true, true);
         initialize(true);
     }
 
+    // restart the simulation, changing appropriate variables
     public void reset(boolean lockHives, boolean lockResources, boolean lockWalls) {
 //        synchronized (swarmA) {
 //            swarmA.reset();
@@ -56,37 +53,32 @@ public class SIModel implements Modelable {
 //        }
         swarmA.reset();
         if (Globals.CONTEST) {
-            if (swarmB == null) {
-                swarmB = new Swarm(this, 7);
-                swarmB.configure(new SwarmConfiguration("data"));
-            }
             swarmB.reset();
         }
-        theGrid.restart(lockResources, lockWalls);
+        environment.restart(lockResources, lockWalls);
         initialize(lockHives);
     }
+    
+    public void updateLocation(int x, int y, int value) {
+        environment.setValue(x, y, value);
+    }
 
-    public void initialize(boolean lockHives) {
-        swarmA.init(theGrid, lockHives);
-        theGrid.setSwarmA(swarmA);
-        if (Globals.CONTEST) {
-            swarmB.init(theGrid, lockHives);
-            theGrid.setSwarmB(swarmB);
-        }
+    public void emitPheremone(int x, int y, int val, int channel) {
+        environment.emitPheremone(x, y, val, channel);
     }
 
     public void createResource(int x, int y) {
-        theGrid.addResource(x, y);
+        environment.addResource(x, y);
     }
     
     public Neighborhood getNeighborhood(int id, double x, double y, int pherChannel) {
-        return theGrid.getNeighborhood(id, x, y, pherChannel);
+        return environment.getNeighborhood(id, x, y, pherChannel);
     }
 
     @Override
     public void step() {
-        theGrid.step();
-        theGrid.clean();
+        environment.step();
+        environment.clean();
         swarmA.step();
         if (Globals.CONTEST) {
             swarmB.step();
@@ -106,7 +98,7 @@ public class SIModel implements Modelable {
     }
 
     public void paint(Graphics g) {
-        theGrid.paint(g);
+        environment.paint(g);
         if (!Globals.PHEREMODE1 && !Globals.PHEREMODE2 && !Globals.PHEREMODE3) {
             swarmA.paint(g);
             if (Globals.CONTEST) {

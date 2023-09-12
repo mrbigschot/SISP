@@ -17,7 +17,7 @@ public class Globals {
     public static int NUM_GOALS = 1;
     public static boolean MANUAL_RESOURCES = false;
 
-    
+    public static final int NUM_CHANNELS = 4;
     public static int NUM_WALLS = 0;
     public static int BUG_SIGHT = 25;
     public static int BUG_SMELL = 25;

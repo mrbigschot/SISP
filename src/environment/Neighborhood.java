@@ -2,93 +2,80 @@ package environment;
 
 public class Neighborhood {
 
-    private int[][] sight, smell;
+    private int[][] sight;
+    private int[][][] smell;
     private int cX, cY;
-    private boolean goal, swarm;
-    private double gX, gY, sX, sY;
-    private Goal g;
+    private boolean hasResource, hasHive;
+    private double resourceX, resourceY;
+    private double hiveX, hiveY;
+    private Resource resource;
 
     public Neighborhood(int x, int y) {
         cX = x;
         cY = y;
-        goal = false;
+        hasResource = false;
     }
 
     public void setSight(int[][] s) {
         sight = s;
     }
-
-    public void setSmell(int[][] s) {
-        smell = s;
-    }
-    
-    public void setGoal(Goal g) {
-        this.g = g;
-    }
-
     public int[][] getSight() {
         return sight;
     }
-
-    public int[][] getSmell() {
-        return smell;
-    }
-    
-    public Goal getGoal() {
-        return g;
-    }
-
     public int see(int x, int y) {
         return sight[x][y];
     }
 
-    public int smell(int x, int y) {
-        return smell[x][y];
+    public void setSmell(int[][][] s) {
+        smell = s;
+    }
+    public int[][][] getSmell() {
+        return smell;
+    }
+    public int smell(int channel, int x, int y) {
+        return smell[channel][x][y];
     }
 
     public void setCenter(int x, int y) {
         cX = x;
         cY = y;
     }
-
-    public void setSwarm(int x, int y) {
-        sX = x;
-        sY = y;
-    }
-
-    public void setGoalPos(double x, double y) {
-        gX = x;
-        gY = y;
-        goal = true;
-    }
-    
-    public double getGX() { return gX; }
-    public double getGY() { return gY; }
-
     public int[] getCenter() {
         int[] returnMe = new int[2];
         returnMe[0] = cX;
         returnMe[1] = cY;
         return returnMe;
     }
-
     public int getHeight() {
         return sight[0].length;
     }
-
     public int getWidth() {
         return sight.length;
     }
 
-    public boolean containsGoal() {
-        return goal;
+    public boolean containsResource() {
+        return hasResource;
     }
+    public void setResource(Resource rsrc) {
+        this.resource = rsrc;
+        this.resourceX = rsrc.getX();
+        this.resourceY = rsrc.getY();
+        this.hasResource = true;
+    }
+    public Resource getResource() {
+        return this.resource;
+    }
+    public double getResourceX() { return resourceX; }
+    public double getResourceY() { return resourceY; }
 
     public boolean containsHive(int id) {
-        return swarm;
+        return hasHive;
     }
-    
-    public void setSwarm(boolean val) { swarm = val; }
+    public void setHive(int x, int y) {
+        this.hiveX = x;
+        this.hiveY = y;
+        this.hasHive = true;
+    }
     
     @Override
     public String toString() {

@@ -3,10 +3,10 @@ package environment;
 import java.awt.Graphics;
 import java.util.ArrayList;
 
-public class GoalList extends ArrayList<Goal> {
+public class ResourceList extends ArrayList<Resource> {
 
     public void paint(Graphics g) {
-        for (Goal goal : this) {
+        for (Resource goal : this) {
             goal.paint(g);
         }
     }

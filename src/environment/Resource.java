@@ -7,13 +7,13 @@ import swarmintelligence.Grabbable;
 import swarmintelligence.SIModel;
 import swarmintelligence.SIObject;
 
-public class Goal extends SIObject implements Grabbable {
+public class Resource extends SIObject implements Grabbable {
 
     int mass;
     double fX, fY;
     SIModel theModel;
 
-    public Goal(SIModel model) {
+    public Resource(SIModel model) {
         theModel = model;
         mass = Globals.MASS;
         this.x = Globals.random(10, Globals.WIDTH - 10);
@@ -22,7 +22,7 @@ public class Goal extends SIObject implements Grabbable {
         setOY(y);
     }
 
-    public Goal(SIModel model, int x, int y) {
+    public Resource(SIModel model, int x, int y) {
         this(model);
         this.x = x;
         this.y = y;
@@ -43,13 +43,15 @@ public class Goal extends SIObject implements Grabbable {
 
     @Override
     public void paint(Graphics g) {
-        if (mass == 0) {
+        if (isDepleted()) {
             g.setColor(Color.BLACK);
         } else {
             g.setColor(new Color(0, 150, 0));
         }
-        int rad = (int) (getDepletion() * 10);
-        g.fillOval((int) x - rad, (int) y - rad, 2 * rad, 2 * rad);
+        int rad = (int)(getDepletion() * 10);
+        int drawX = (int)x - rad;
+        int drawY = (int)y - rad;
+        g.fillOval(drawX, drawY, 2 * rad, 2 * rad);
     }
 
     public double getDepletion() {
@@ -61,7 +63,7 @@ public class Goal extends SIObject implements Grabbable {
     }
 
     public int gather() {
-        if (mass > 0) {
+        if (!isDepleted()) {
             mass--;
             return 1;
         }
@@ -80,7 +82,7 @@ public class Goal extends SIObject implements Grabbable {
         y += fY;
         fX = 0;
         fY = 0;
-        theModel.emitPheremone((int)x, (int)y, (int)(getDepletion() * Globals.MAX_SMELL), 1);
+        theModel.emitPheremone((int)x, (int)y, (int)(getDepletion() * Globals.MAX_SMELL), Pheremone.CHANNEL_RESOURCE_A);
     }
 
     @Override

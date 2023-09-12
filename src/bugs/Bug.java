@@ -4,70 +4,79 @@ import java.awt.Color;
 import java.awt.Graphics;
 import swarmintelligence.Globals;
 import swarmintelligence.Grabbable;
+import environment.IEnvironment;
 import environment.Neighborhood;
+import environment.Pheremone;
 import swarmintelligence.SIObject;
 
 public class Bug extends SIObject {
 
-    Swarm theSwarm;
-    int swarmID;
-    Color color;
-    double speed;
-    double accel;
-    double orientation; // radians, 0 is along +x axis, PI/2 is along +y axis
-    double addSpeed;
-    double addAngle;
-    int pherOut = 0;
-    int hX, hY;
-    int carry = 0;
-
+    private Swarm mySwarm;
+    private Color color;
+    private int channelHive = Pheremone.CHANNEL_HIVE_A;
+    private int channelResource = Pheremone.CHANNEL_RESOURCE_A;
+    
     double wAvoid = 0.0;
     double wCondense = 0.0;
     double wMatch = 0.0;
+    boolean grabber = true;
+
+    private int adventurous = 0;
+    private int activeDelay = 0;
+    
+    double speed;
+    double orientation; // radians, 0 is along +x axis, PI/2 is along +y axis
+    double addSpeed;
+    double addAngle;
+    int[] pherOut;
+    int hX, hY;
+    int carry = 0;
 
     boolean turning, turnLeft;
 
     boolean seekingResource = true;
-    int timeSince = 0;
+    int timeSinceResource = -1;
+    int timeSinceHive = 0;
     int smellThreshold = 100;
     
-    int[] pherMem;
+    int[][] pherMem;
     double goalX, goalY;
 
     int wallCounter;
     int smellDelay;
 
-    Neighborhood nHoodC, nHoodP;
+    Neighborhood currentNeighborhood, previousNeighborhood;
     Grabbable grabbed;
-    boolean grabber = true;
 
     public Bug() {
-        pherMem = new int[10];
+        pherMem = new int[Globals.NUM_CHANNELS][3];
+        this.pherOut = new int[Globals.NUM_CHANNELS];
+        this.adventurous = Globals.random(50, Globals.MAX_SMELL);
     }
 
-    public Bug(Swarm s, double x, double y, Color c) {
+    public Bug(Swarm s, double x, double y, Color c, int b) {
         this();
-        theSwarm = s;
+        this.activeDelay = b;
+        mySwarm = s;
         this.x = x;
+        color = c;
+        if (mySwarm.getSwarmID() == Swarm.SWARM_A) {
+            channelHive = Pheremone.CHANNEL_HIVE_A;
+            channelResource = Pheremone.CHANNEL_RESOURCE_A;
+        } else {
+            channelHive = Pheremone.CHANNEL_HIVE_B;
+            channelResource = Pheremone.CHANNEL_RESOURCE_A;
+        }
         this.y = y;
         this.hX = (int) x;
         this.hY = (int) y;
-        color = c;
     }
     
     public int getPheremoneInputChannel() {
         if (seekingResource) {
-            return 1;
+            return channelResource;
         } else {
-            return theSwarm.getPheremoneChannel();
-        }
-    }
-    
-    public int getPheremoneOutputChannel() {
-        if (seekingResource) {
-            return theSwarm.getPheremoneChannel();
-        } else {
-            return 1;
+            return channelHive;
         }
     }
     
@@ -76,52 +85,65 @@ public class Bug extends SIObject {
         this.grabber = config.getCanGrab();
     }
     
+    @Override
     public void step() {
-        if (timeSince < Globals.MAX_SMELL) timeSince++;
-        calcPher();
-        assessEnvironment();
-        if (seekingResource) {
-            seekResource();            
+        if (this.activeDelay == 0) {
+            if (timeSinceResource > -1 && timeSinceResource < Globals.MAX_SMELL) timeSinceResource++;
+            if (timeSinceHive > -1 && timeSinceHive < Globals.MAX_SMELL) timeSinceHive++;
+            assessEnvironment();
+            if (seekingResource) {
+                seekResource();            
+            } else if (carry > 0) {
+                seekDeposit();
+            } else {
+                seekHive();
+            }
+            calcPher();
+            emitPher();
+            move();
         } else {
-            seekHive();
+            this.activeDelay--;
         }
-        emitPher();
-        move();
     }
     
+    // actively searching for resource
     private void seekResource() {
-        if (nHoodC.containsGoal()) {
+        if (currentNeighborhood.containsResource()) {
             towardGoal();
         } else {
             update();
         }
     }
 
+    // returning to hive, but will be distracted by resources
     private void seekHive() {
-//        if (nHoodC.containsGoal()) {
-//            this.timeSince = 0;
-//        }
-        if ((Math.abs(hX - x) < 5) && (Math.abs(hY - y) < 5)) {
+        if (currentNeighborhood.containsResource()) {
+            seekingResource = true;
+            towardGoal();
+        } else if (nearLocation(hX - x, hY - y)) {
             deposit();
             seekingResource = true;
-            timeSince = 0;
+            timeSinceHive = 0;
             addAngle = Math.PI;
         } else {
-//            speed = 1;
-//            double angle = Math.atan2(theSwarm.getY() - y, theSwarm.getX() - x);
-//            addAngle = matchAngle(angle);
-//            if (grabbed != null && ((Math.abs(hX - x) > 10) || (Math.abs(hY - y) > 10))) {
-//                double xf = Math.cos(orientation) * speed;
-//                double yf = Math.sin(orientation) * speed;
-//                grabbed.applyForce(xf, yf);
-//                grabbed = null;
-//            }
             update();
         }
     }
 
+    // found resource, returning to hive to deposit
+    private void seekDeposit() {
+        if (nearLocation(hX - x, hY - y)) {
+            deposit();
+            seekingResource = true;
+            timeSinceHive = 0;
+            addAngle = Math.PI;
+        } else {
+            update();
+        }
+    }
+    
     private void deposit() {
-        theSwarm.deposit(carry);
+        mySwarm.deposit(carry);
         carry = 0;
     }
     
@@ -139,102 +161,161 @@ public class Bug extends SIObject {
     }
 
     public void update() {
-        // avoid secondary smell? i.e. if seeking green smell, avoid blue smell
-        if (hasSmelled()) {
-            if (smellDelay == 0) {
-                smellDelay = 3;
-                speed = .75;
-                int[] smelliest = upGradient();
-                addAngle = matchAngle(Math.atan2((double) smelliest[1], (double) smelliest[0]));
+        if (seekingResource) {
+            if (hasSmelled(this.channelResource)) {
+                followPheremone(this.channelResource);
+            } else if (this.timeSinceHive >= this.adventurous) {
+                this.seekingResource = false;
+            } else if (hasSmelled(this.channelHive)) {
+                avoidPheremone(this.channelHive);
             } else {
-                if (smellDelay > 0) {
-                    smellDelay--;
-                }
+                defaultStep();
             }
         } else {
-            defaultStep();
+            if (hasSmelled(this.channelResource)) {
+                followPheremone(this.channelResource);
+            } else if (hasSmelled(this.channelHive)) {
+                followPheremone(this.channelHive);
+            } else {
+                defaultStep();
+            }
         }
     }
 
-    private boolean hasSmelled() {
+    public void followPheremone(int channel) {
+        if (smellDelay == 0) {
+            smellDelay = 3;
+            int[] smelliest = upGradient(channel);
+            addAngle = matchAngle(Math.atan2((double)smelliest[1], (double)smelliest[0]));
+            speed = 1 - (Math.abs(addAngle) / Math.PI);
+        } else {
+            if (smellDelay > 0) {
+                smellDelay--;
+            }
+        }
+    }
+    
+    public void avoidPheremone(int channel) {
+        if (smellDelay == 0) {
+            smellDelay = 3;
+            int[] smelliest = downGradient(channel);
+            addAngle = matchAngle(Math.atan2((double)smelliest[1], (double)smelliest[0]));
+            speed = 1 - (Math.abs(addAngle) / Math.PI);
+        } else {
+            if (smellDelay > 0) {
+                smellDelay--;
+            }
+        }
+    }
+    
+    private boolean hasSmelled(int channel) {
         if (Globals.CONTROL) {
             return false;
         }
-        for (int i = 0; i < pherMem.length; i++) {
-            if (pherMem[i] > smellThreshold) {
+        for (int i = 0; i < pherMem[channel].length; i++) {
+            if (pherMem[channel][i] > smellThreshold) {
                 return true;
             }
         }
         return false;
-
     }
 
     // checks for highest pheromone value in immediate vicinity
-    private int[] upGradient() {
-        int cX = nHoodC.getCenter()[0];
-        int cY = nHoodC.getCenter()[1];
-        int smelliestX = cX + 1;
-        int smelliestY = cY;
+    private int[] upGradient(int channel) {
+        int cX = currentNeighborhood.getCenter()[0];
+        int cY = currentNeighborhood.getCenter()[1];
+        int targetX = cX + 1;
+        int targetY = cY;
         for (int i = -1; i <= 1; i++) {
             for (int j = -1; j <= 1; j++) {
                 if (i != 0 || j != 0) {
-                    if (nHoodC.smell(cX + i, cY + j) > nHoodC.smell(smelliestX, smelliestY)) {
-                        smelliestX = cX + i;
-                        smelliestY = cY + j;
+                    if (currentNeighborhood.smell(channel, cX + i, cY + j) > currentNeighborhood.smell(channel, targetX, targetY)) {
+                        targetX = cX + i;
+                        targetY = cY + j;
                     }
                 }
             }
         }
-        int[] returnMe = {smelliestX - cX, smelliestY - cY};
+        int[] returnMe = {targetX - cX, targetY - cY};
+        return returnMe;
+    }
+    
+    // check for lowest pheremone value in immediate vicinity
+    private int[] downGradient(int channel) {
+        int cX = currentNeighborhood.getCenter()[0];
+        int cY = currentNeighborhood.getCenter()[1];
+        int targetX = cX + 1;
+        int targetY = cY;
+        for (int i = -1; i <= 1; i++) {
+            for (int j = -1; j <= 1; j++) {
+                if (i != 0 || j != 0) {
+                    if (currentNeighborhood.smell(channel, cX + i, cY + j) < currentNeighborhood.smell(channel, targetX, targetY)) {
+                        targetX = cX + i;
+                        targetY = cY + j;
+                    }
+                }
+            }
+        }
+        int[] returnMe = {targetX - cX, targetY - cY};
         return returnMe;
     }
     
     private void calcPher() {
-        pherOut = 0;
-        if (Globals.CONTROL) {
-            return;
+        if (timeSinceResource > -1) {
+            pherOut[this.channelResource] = Math.max(Globals.MAX_SMELL - timeSinceResource, 0);
+        } else {
+            pherOut[this.channelResource] = 0;
         }
-        if (this.seekingResource || this.carry > 0) {
-            pherOut = Globals.MAX_SMELL - timeSince;
+        if (timeSinceHive > -1) {
+            pherOut[this.channelHive] = Math.max(Globals.MAX_SMELL - timeSinceHive, 0);
+        } else {
+            pherOut[this.channelHive] = 0;
         }
-        if (pherOut < 0) { pherOut = 0; }
     }
 
     private void assessEnvironment() {
-        if (nHoodC.containsGoal()) {
-            goalX = nHoodC.getGX();
-            goalY = nHoodC.getGY();
+        if (currentNeighborhood.containsResource()) {
+            goalX = currentNeighborhood.getResourceX();
+            goalY = currentNeighborhood.getResourceY();
         }
-        for (int i = pherMem.length - 1; i > 0; i--) {
-            pherMem[i] = pherMem[i - 1];
+        for (int i = 0; i < Globals.NUM_CHANNELS; i++) {
+            for (int j = pherMem[i].length - 1; j > 0; j--) {
+                pherMem[i][j] = pherMem[i][j - 1];
+            }
         }
-        pherMem[0] = nHoodC.smell(nHoodC.getCenter()[0], nHoodC.getCenter()[1]);
+        int centerX = currentNeighborhood.getCenter()[0];
+        int centerY = currentNeighborhood.getCenter()[1];
+        pherMem[this.channelResource][0] = currentNeighborhood.smell(this.channelResource, centerX, centerY);
     }
 
     public void setNeighborhood(Neighborhood n) {
-        this.nHoodP = this.nHoodC;
-        this.nHoodC = n;
-        if (nHoodP == null) {
-            nHoodP = nHoodC;
+        this.previousNeighborhood = this.currentNeighborhood;
+        this.currentNeighborhood = n;
+        if (previousNeighborhood == null) {
+            previousNeighborhood = currentNeighborhood;
         }
     }
 
     public void updateLocation() {
-        theSwarm.updateLocation((int) x, (int) y);
+        mySwarm.updateLocation((int) x, (int) y);
     }
 
+    public boolean nearLocation(double dx, double dy) {
+        return (Math.abs(dx) < 8) && (Math.abs(dy) < 8);
+    }
+    
     private void towardGoal() {
-        if ((Math.abs(goalX - x) < 5) && (Math.abs(goalY - y) < 5)) {
+        if (nearLocation(goalX - x, goalY - y)) {
             addToAngle(Math.PI);
-            if (nHoodC.containsGoal()) {
-                carry = nHoodC.getGoal().gather();
-                timeSince = 0;
+            if (currentNeighborhood.containsResource()) {
+                carry = currentNeighborhood.getResource().gather();
+                timeSinceResource = 0;
             }
             if (carry != 0) {
                 seekingResource = false;
             }
             if (grabber) {
-                grabbed = nHoodC.getGoal();
+                grabbed = currentNeighborhood.getResource();
             }
         } else {
             if (speed < 1) {
@@ -247,7 +328,7 @@ public class Bug extends SIObject {
 
     private void avoidCollision() {
         double rAngle = 0;
-        double[] com = centerOfMass2(nHoodC);
+        double[] com = centerOfMass(currentNeighborhood);
         if (!((com[0] == 0) && (com[1] == 0))) {
             double angle = (Math.atan2(com[1], com[0])) + Math.PI;
             if (angle < 0) {
@@ -255,12 +336,6 @@ public class Bug extends SIObject {
             } else {
                 angle = angle % (2 * Math.PI);
             }
-//            if (Globals.DEBUG) {
-//                System.out.println("B" + index);
-//                System.out.println("\tPOS: (" + x + ", " + y + ")");
-//                System.out.println("\tCOM:(" + com[0] + ", " + com[1] + ")");
-//                System.out.println("\tθ: " + angle);
-//            }
             rAngle = matchAngle(angle);
         }
         addAngle += wAvoid * rAngle;
@@ -288,24 +363,12 @@ public class Bug extends SIObject {
     }
 
     private double[] calcVel() {
-        double[] comC = centerOfMass1(nHoodC);
-        double[] comP = centerOfMass1(nHoodP);
+        double[] comC = relativeCenterOfMass(currentNeighborhood);
+        double[] comP = relativeCenterOfMass(previousNeighborhood);
         double dx = comC[0] - comP[0];
         double dy = comC[1] - comP[1];
         double mag = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
         double angle = Math.atan2(dy, dx);
-//        if (Globals.DEBUG) {
-//            System.out.println("B" + index);
-//            System.out.println("\tPOS: (" + nHoodC.cX + ", " + nHoodC.cY + ")");
-//            System.out.println("\tspeed: " + speed);
-//            System.out.println("\tangle: " + orientation);
-//            System.out.println("COM = (" + comC[0] + ", " + comC[1] + ")");
-//            System.out.println("\tdX: " + dx);
-//            System.out.println("\tdY: " + dy);
-//            System.out.println("\tmag = " + mag);
-//            System.out.println("\tangle = " + angle);
-//            System.out.println("\n");
-//        }
         double[] returnMe = new double[4];
         returnMe[0] = dx;
         returnMe[1] = dy;
@@ -316,23 +379,16 @@ public class Bug extends SIObject {
 
     private void condense() {
         double rAngle = 0;
-        double[] com = centerOfMass1(nHoodC);
+        double[] com = relativeCenterOfMass(currentNeighborhood);
         if (!((com[0] == 0) && (com[1] == 0))) {
             double angle = Math.atan2(com[1], com[0]);
             rAngle = matchAngle(angle);
-//            if (Globals.DEBUG) {
-//                System.out.println("B" + index + " condense");
-//                System.out.println("\tPOS: (" + x + ", " + y + ")");
-//                System.out.println("\tCOM:(" + com[0] + ", " + com[1] + ")");
-//                System.out.println("\tθ: " + angle);
-//                System.out.println("adjust by: " + rAngle);
-//            }
         }
         addAngle += wCondense * rAngle;
     }
 
-    // centerOfMass() returns the center of mass relative to this Bug's position
-    private double[] centerOfMass1(Neighborhood grid) {
+    // relativeCenterOfMass() returns the center of mass relative to this Bug's position
+    private double[] relativeCenterOfMass(Neighborhood grid) {
         double[] returnMe = new double[2];
         double xsum = 0;
         double ysum = 0;
@@ -358,7 +414,7 @@ public class Bug extends SIObject {
         return returnMe;
     }
 
-    private double[] centerOfMass2(Neighborhood grid) {
+    private double[] centerOfMass(Neighborhood grid) {
         double[] returnMe = new double[2];
         double xsum = 0;
         double ysum = 0;
@@ -416,7 +472,7 @@ public class Bug extends SIObject {
         }
         return returnMe;
     }
-
+    
     private double matchSpeed(double s) {
         if (speed < s) {
             return .1;
@@ -450,17 +506,20 @@ public class Bug extends SIObject {
     }
 
     private void emitPher() {
-        if (pherOut > 0) {
-            theSwarm.emitPheremone((int) x, (int) y, pherOut, getPheremoneOutputChannel());
+        if (pherOut[this.channelHive] > 0) {
+            mySwarm.emitPheremone((int)x, (int)y, pherOut[this.channelHive], this.channelHive);
+        }
+        if (pherOut[this.channelResource] > 0) {
+            mySwarm.emitPheremone((int)x, (int)y, pherOut[this.channelResource], this.channelResource);
         }
     }
 
     private boolean facingWall(double nx, double ny) {
         double dx = nx - x;
         double dy = ny - y;
-        int gx = (int) (nHoodC.getCenter()[0] + dx);
-        int gy = (int) (nHoodC.getCenter()[1] + dy);
-        return nHoodC.see(gx, gy) == 1;
+        int gx = (int) (currentNeighborhood.getCenter()[0] + dx);
+        int gy = (int) (currentNeighborhood.getCenter()[1] + dy);
+        return currentNeighborhood.see(gx, gy) == IEnvironment.ENV_WALL;
     }
 
     public void setWeights(double wA, double wM, double wC) {
@@ -519,20 +578,19 @@ public class Bug extends SIObject {
         returnMe += "speed = " + speed;
 
         return returnMe;
-
     }
 
     @Override
     public void paint(Graphics g) {
         g.setColor(color);
-//        if (this.seekingResource) {
-//            g.setColor(Color.ORANGE);
-//        }
-        int d = 3;
-        if (carry != 0) {
-            d = 4;
+        
+        int size = 3;
+        if (carry > 0) {
+            size = 4;
         }
-        g.fillOval((int) x - d / 2, (int) y - d / 2, d, d);
+        int drawX = (int)x - size / 2;
+        int drawY = (int)y - size / 2;
+        g.fillOval(drawX, drawY, size, size);
     }
 
 }

@@ -68,8 +68,6 @@ public class ControlsFrame extends javax.swing.JFrame {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
-        bindingGroup = new org.jdesktop.beansbinding.BindingGroup();
-
         viewButtons = new javax.swing.ButtonGroup();
         jTabbedPane1 = new javax.swing.JTabbedPane();
         ctrlPanel = new javax.swing.JPanel();
@@ -353,20 +351,13 @@ public class ControlsFrame extends javax.swing.JFrame {
         avoidTF.setFont(new java.awt.Font("Lucida Grande", 0, 10)); // NOI18N
         avoidTF.setHorizontalAlignment(javax.swing.JTextField.CENTER);
 
-        org.jdesktop.beansbinding.Binding binding = org.jdesktop.beansbinding.Bindings.createAutoBinding(org.jdesktop.beansbinding.AutoBinding.UpdateStrategy.READ_WRITE, avoidSlider, org.jdesktop.beansbinding.ELProperty.create("${value / 100.0}"), avoidTF, org.jdesktop.beansbinding.BeanProperty.create("text"));
-        bindingGroup.addBinding(binding);
 
         matchTF.setFont(new java.awt.Font("Lucida Grande", 0, 10)); // NOI18N
         matchTF.setHorizontalAlignment(javax.swing.JTextField.CENTER);
 
-        binding = org.jdesktop.beansbinding.Bindings.createAutoBinding(org.jdesktop.beansbinding.AutoBinding.UpdateStrategy.READ_WRITE, matchSlider, org.jdesktop.beansbinding.ELProperty.create("${value / 100.0}"), matchTF, org.jdesktop.beansbinding.BeanProperty.create("text"));
-        bindingGroup.addBinding(binding);
 
         condenseTF.setFont(new java.awt.Font("Lucida Grande", 0, 10)); // NOI18N
         condenseTF.setHorizontalAlignment(javax.swing.JTextField.CENTER);
-
-        binding = org.jdesktop.beansbinding.Bindings.createAutoBinding(org.jdesktop.beansbinding.AutoBinding.UpdateStrategy.READ_WRITE, condenseSlider, org.jdesktop.beansbinding.ELProperty.create("${value / 100.0}"), condenseTF, org.jdesktop.beansbinding.BeanProperty.create("text"));
-        bindingGroup.addBinding(binding);
 
         grabCheck.setText("Can Grab");
 
@@ -451,8 +442,6 @@ public class ControlsFrame extends javax.swing.JFrame {
         swarmSizeTF.setFont(new java.awt.Font("Lucida Grande", 0, 10)); // NOI18N
         swarmSizeTF.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
 
-        binding = org.jdesktop.beansbinding.Bindings.createAutoBinding(org.jdesktop.beansbinding.AutoBinding.UpdateStrategy.READ_WRITE, sizeSlider, org.jdesktop.beansbinding.ELProperty.create("${value}"), swarmSizeTF, org.jdesktop.beansbinding.BeanProperty.create("text"));
-        bindingGroup.addBinding(binding);
 
         swarmSizeLabel.setFont(new java.awt.Font("Lucida Grande", 0, 12)); // NOI18N
         swarmSizeLabel.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
@@ -841,8 +830,6 @@ public class ControlsFrame extends javax.swing.JFrame {
                 .addContainerGap())
         );
 
-        bindingGroup.bind();
-
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
@@ -1116,7 +1103,6 @@ public class ControlsFrame extends javax.swing.JFrame {
     private javax.swing.ButtonGroup viewButtons;
     private javax.swing.JSlider wallSlider;
     private javax.swing.JLabel wallsLabel;
-    private org.jdesktop.beansbinding.BindingGroup bindingGroup;
     // End of variables declaration//GEN-END:variables
 
 }
