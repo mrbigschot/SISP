@@ -2,6 +2,8 @@ package bugs;
 
 import java.awt.Color;
 import java.awt.Graphics;
+
+import environment.Environment;
 import swarmintelligence.Globals;
 import swarmintelligence.Grabbable;
 import environment.IEnvironment;
@@ -60,7 +62,7 @@ public class Bug extends SIObject {
         mySwarm = s;
         this.x = x;
         color = c;
-        if (mySwarm.getSwarmID() == Swarm.SWARM_A) {
+        if (mySwarm.getSwarmID() == Environment.ENV_SWARM_A) {
             channelHive = Pheremone.CHANNEL_HIVE_A;
             channelResource = Pheremone.CHANNEL_RESOURCE_A;
         } else {

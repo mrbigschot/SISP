@@ -1,7 +1,10 @@
 package environment;
 
+// Java imports
 import java.awt.Color;
 import java.awt.Graphics;
+
+// Swarm imports
 import swarmintelligence.Globals;
 import swarmintelligence.Grabbable;
 import swarmintelligence.SIModel;
@@ -16,8 +19,8 @@ public class Resource extends SIObject implements Grabbable {
     public Resource(SIModel model) {
         theModel = model;
         mass = Globals.MASS;
-        this.x = Globals.random(10, Globals.WIDTH - 10);
-        this.y = Globals.random(10, Globals.HEIGHT - 10);
+        this.x = Globals.random(10, IEnvironment.ENVIRONMENT_WIDTH - 10);
+        this.y = Globals.random(10, IEnvironment.ENVIRONMENT_HEIGHT - 10);
         setOX(x);
         setOY(y);
     }
@@ -33,8 +36,8 @@ public class Resource extends SIObject implements Grabbable {
     public void reset(boolean lockPosition) {
         mass = Globals.MASS;
         if (!lockPosition) {
-            this.x = Globals.random(10, Globals.WIDTH - 10);
-            this.y = Globals.random(10, Globals.HEIGHT - 10);
+            this.x = Globals.random(10, IEnvironment.ENVIRONMENT_WIDTH - 10);
+            this.y = Globals.random(10, IEnvironment.ENVIRONMENT_HEIGHT - 10);
         } else {
             this.x = getOX();
             this.y = getOY();

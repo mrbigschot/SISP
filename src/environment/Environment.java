@@ -1,8 +1,11 @@
 package environment;
 
-import bugs.Swarm;
+// Java imports
 import java.awt.Color;
 import java.awt.Graphics;
+
+// Swarm imports
+import bugs.Swarm;
 import swarmintelligence.Globals;
 import swarmintelligence.SIModel;
 
@@ -11,9 +14,9 @@ public class Environment implements IEnvironment {
     int step = 0;
     int[][] grid;
     int[] pherSteps;
-    int[][][] pherChannels;
-    
-    boolean[][] walls;
+    PheromoneLayer[] pheromoneChannels;
+    private WallLayer walls;
+
     Resource resource;
     ResourceList resources;
     Swarm swarmA, swarmB;
@@ -21,27 +24,33 @@ public class Environment implements IEnvironment {
 
     public Environment(SIModel m) {
         theModel = m;
-        grid = new int[Globals.WIDTH][Globals.HEIGHT]; // (x, y)
+        grid = new int[ENVIRONMENT_WIDTH][ENVIRONMENT_HEIGHT]; // (x, y)
         this.pherSteps = new int[Globals.NUM_CHANNELS];
-        this.pherChannels = new int[Globals.NUM_CHANNELS][Globals.WIDTH][Globals.HEIGHT]; // (channel, x, y)
+        initPheromoneLayers();
         initWalls();
         initResources();
     }
-    
-    public void restart(boolean lockResources, boolean lockWalls) {
-        if (!lockResources) {
-            initResources();
-        } else {
-            for (Resource rsrc : resources) {
-                rsrc.reset(lockResources);
-            }
+
+    private void initPheromoneLayers() {
+        this.pheromoneChannels = new PheromoneLayer[Globals.NUM_CHANNELS];
+        for (int ii = 0; ii < Globals.NUM_CHANNELS; ii++) {
+            this.pheromoneChannels[ii] = new PheromoneLayer(ENVIRONMENT_WIDTH, ENVIRONMENT_HEIGHT);
         }
-        if (!lockWalls) {
-            initWalls();
-        }
-        this.pherChannels = new int[Globals.NUM_CHANNELS][Globals.WIDTH][Globals.HEIGHT]; // (channel, x, y)
     }
-    
+
+    private void initWalls() {
+        this.walls = new WallLayer(ENVIRONMENT_WIDTH, ENVIRONMENT_HEIGHT, Globals.NUM_WALLS);
+    }
+
+    public void restart(boolean lockResources, boolean lockWalls) {
+        if (lockResources) {
+            for (Resource rsrc : resources) { rsrc.reset(lockResources); }
+        } else {
+            initResources();
+        }
+        if (!lockWalls) initWalls();
+        initPheromoneLayers();
+    }
 
     private void initResources() {
         resources = new ResourceList();
@@ -51,17 +60,17 @@ public class Environment implements IEnvironment {
     }
     
     private Resource initResource() {
-        int x = Globals.random(10, Globals.WIDTH - 10);
-        int y = Globals.random(10, Globals.HEIGHT - 10);
-        while (walls[x][y]) {
-            x = Globals.random(10, Globals.WIDTH - 10);
-            y = Globals.random(10, Globals.HEIGHT - 10);
+        int x = Globals.random(10, ENVIRONMENT_WIDTH - 10);
+        int y = Globals.random(10, ENVIRONMENT_HEIGHT - 10);
+        while (isWallAt(x, y)) {
+            x = Globals.random(10, ENVIRONMENT_WIDTH - 10);
+            y = Globals.random(10, ENVIRONMENT_HEIGHT - 10);
         }
         return initResource(x, y);
     }
     
     private Resource initResource(int x, int y) {
-        if (isWall(x, y)) {
+        if (isWallAt(x, y)) {
             return null;
         } else {
             return new Resource(theModel, x, y);
@@ -81,51 +90,9 @@ public class Environment implements IEnvironment {
         this.swarmB = b;
     }
 
-    public boolean isWall(int x, int y) {
-        return walls[x][y];
-    }
-
-    private void initWalls() {
-        walls = new boolean[Globals.WIDTH][Globals.HEIGHT]; // (x, y)
-        for (int i = 0; i < Globals.HEIGHT; i++) {
-            for (int j = 0; j < 5; j++) {
-                walls[j][i] = true;
-                walls[Globals.WIDTH - 1 - j][i] = true;
-            }
-        }
-        for (int i = 0; i < Globals.WIDTH; i++) {
-            for (int j = 0; j < 5; j++) {
-                walls[i][j] = true;
-                walls[i][Globals.HEIGHT - 1 - j] = true;
-            }
-        }
-        for (int i = 0; i < Globals.NUM_WALLS; i++) {
-            int x = Globals.random(5, Globals.WIDTH - 5);
-            int y = Globals.random(5, Globals.HEIGHT - 5);
-            int l = Globals.random(25, 200);
-            int max;
-            if (Globals.coinFlip(.5)) {
-                // horizontal
-                max = Math.min(x + l, Globals.WIDTH);
-                for (int ix = x; ix < max; ix++) {
-                    walls[ix][y] = true;
-                    walls[ix][y + 1] = true;
-                    walls[ix][y + 2] = true;
-                    walls[ix][y + 3] = true;
-                    walls[ix][y + 4] = true;
-                }
-            } else {
-                // vertical
-                max = Math.min(y + l, Globals.HEIGHT);
-                for (int iy = y; iy < max; iy++) {
-                    walls[x][iy] = true;
-                    walls[x + 1][iy] = true;
-                    walls[x + 2][iy] = true;
-                    walls[x + 3][iy] = true;
-                    walls[x + 4][iy] = true;
-                }
-            }
-        }
+    public boolean isWallAt(int x, int y) { return this.walls.isWallAt(x, y); }
+    public int getPheromoneLevelAt(int channel, int x, int y) {
+        return this.pheromoneChannels[channel].getPheromoneLevelAt(x, y);
     }
 
     public Neighborhood getNeighborhood(int swarmID, double dx, double dy, int pherChannelResource) {
@@ -133,9 +100,9 @@ public class Environment implements IEnvironment {
         int iy = (int)dy; // cast dy to int for calculation
         int n = Globals.BUG_SIGHT;
         int xmin = Math.max(ix - n, 0);
-        int xmax = Math.min(ix + n, Globals.WIDTH);
+        int xmax = Math.min(ix + n, ENVIRONMENT_WIDTH);
         int ymin = Math.max(iy - n, 0);
-        int ymax = Math.min(iy + n, Globals.HEIGHT);
+        int ymax = Math.min(iy + n, ENVIRONMENT_HEIGHT);
         int centerX = ix - xmin;
         int centerY = iy - ymin;
 
@@ -144,13 +111,13 @@ public class Environment implements IEnvironment {
         int[][][] nSmell = new int[Globals.NUM_CHANNELS][xmax - xmin][ymax - ymin];
         for (int i = xmin; i < xmax; i++) {
             for (int j = ymin; j < ymax; j++) {
-                if (isWall(i, j)) {
+                if (isWallAt(i, j)) {
                     nSight[i - xmin][j - ymin] = ENV_WALL;
                 } else if (grid[i][j] != ENV_EMPTY) {
                     nSight[i - xmin][j - ymin] = grid[i][j];
                 }
                 for (int k = 0; k < Globals.NUM_CHANNELS; k++) {
-                    nSmell[k][i - xmin][j - ymin] = pherChannels[k][i][j];
+                    nSmell[k][i - xmin][j - ymin] = getPheromoneLevelAt(k, i, j);
                 }
             }
         }
@@ -178,15 +145,8 @@ public class Environment implements IEnvironment {
         grid[x][y] = value;
     }
 
-    public void emitPheremone(int x, int y, int value, int channel) {
-        pherChannels[channel][x][y] = Math.max(value, pherChannels[channel][x][y]);
-    }
-
-    private int[][] addPher(int[][] pheremoneChannel, int x, int y, int value) {
-        if (!walls[x][y]) {
-            pheremoneChannel[x][y] = Math.min(pheremoneChannel[x][y] + value, Globals.MAX_SMELL);
-        }
-        return pheremoneChannel;
+    public void emitPheromone(int x, int y, int value, int channel) {
+        this.pheromoneChannels[channel].emitPheromone(x, y, value);
     }
 
     public void dilute() {
@@ -197,30 +157,16 @@ public class Environment implements IEnvironment {
 
     public void dilute(int channel, int persistence) {
         if (persistence != 0) {
-            int[][] newPher;
             pherSteps[channel]++;
             if (pherSteps[channel] == persistence) {
                 pherSteps[channel] = 0;
-                newPher = new int[Globals.WIDTH][Globals.HEIGHT];
-                for (int i = 2; i < Globals.WIDTH - 2; i++) {
-                    for (int j = 2; j < Globals.HEIGHT - 2; j++) {
-                        if (pherChannels[channel][i][j] != 0) {
-                            int n = (int)(pherChannels[channel][i][j] * Globals.DECAY_RATE);
-                            addPher(newPher, i, j, n);
-                            addPher(newPher, i - 1, j, n);
-                            addPher(newPher, i + 1, j, n);
-                            addPher(newPher, i, j - 1, n);
-                            addPher(newPher, i, j + 1, n);
-                        }
-                    }
-                }
-                pherChannels[channel] = newPher;
+                this.pheromoneChannels[channel].dilute(this);
             }
         }
     }
     
     public void clean() {
-        grid = new int[Globals.WIDTH][Globals.HEIGHT]; // (x, y)
+        grid = new int[ENVIRONMENT_WIDTH][ENVIRONMENT_HEIGHT]; // (x, y)
         dilute();
     }
 
@@ -240,9 +186,9 @@ public class Environment implements IEnvironment {
 
     public Swarm getSwarm(int swarmID) {
         Swarm swarm = null;
-        if (swarmID == Swarm.SWARM_A) {
+        if (swarmID == ENV_SWARM_A) {
             swarm = swarmA;
-        } else if (swarmID == Swarm.SWARM_B) {
+        } else if (swarmID == ENV_SWARM_B) {
             swarm = swarmB;            
         }
         return swarm;
@@ -270,9 +216,9 @@ public class Environment implements IEnvironment {
             paintPherChannel(Pheremone.CHANNEL_HIVE_B, g);
         } else {
             g.setColor(Color.BLACK);
-            for (int x = 0; x < Globals.WIDTH; x++) {
-                for (int y = 0; y < Globals.HEIGHT; y++) {
-                    if (isWall(x, y)) {
+            for (int x = 0; x < ENVIRONMENT_WIDTH; x++) {
+                for (int y = 0; y < ENVIRONMENT_HEIGHT; y++) {
+                    if (isWallAt(x, y)) {
                         g.fillRect(x, y, 1, 1);
                     }
                 }
@@ -282,10 +228,10 @@ public class Environment implements IEnvironment {
     }
 
     private void paintPherChannel(int channel, Graphics graphics) {
-        for (int x = 0; x < Globals.WIDTH; x++) {
-            for (int y = 0; y < Globals.HEIGHT; y++) {
-                if (pherChannels[channel][x][y] > 0) {
-                    graphics.setColor(Pheremone.getColor(channel, pherChannels[channel][x][y]));
+        for (int x = 0; x < ENVIRONMENT_WIDTH; x++) {
+            for (int y = 0; y < ENVIRONMENT_HEIGHT; y++) {
+                if (pheromoneChannels[channel].hasPheromoneAt(x, y)) {
+                    graphics.setColor(Pheremone.getColor(channel, getPheromoneLevelAt(channel, x, y)));
                     graphics.fillRect(x, y, 1, 1);
                 } else {
                     graphics.setColor(Color.BLACK);
@@ -298,8 +244,8 @@ public class Environment implements IEnvironment {
     @Override
     public String toString() {
         String returnMe = "";
-        for (int y = 0; y < Globals.HEIGHT; y++) {
-            for (int x = 0; x < Globals.WIDTH; x++) {
+        for (int y = 0; y < ENVIRONMENT_HEIGHT; y++) {
+            for (int x = 0; x < ENVIRONMENT_WIDTH; x++) {
                 returnMe += grid[x][y];
             }
             returnMe += "\n";

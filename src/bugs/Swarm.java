@@ -1,21 +1,21 @@
 package bugs;
 
-import environment.Pheremone;
+// Java imports
 import java.awt.Color;
 import java.awt.Graphics;
 import java.util.ArrayList;
-import swarmintelligence.Globals;
-import environment.Environment;
+import java.util.Enumeration;
 import java.awt.BasicStroke;
 import java.awt.Graphics2D;
-import java.util.Enumeration;
+
+// Swarm imports
+import environment.Pheremone;
+import swarmintelligence.Globals;
+import environment.Environment;
 import swarmintelligence.SIModel;
 
 public class Swarm extends ArrayList<Bug> {
 
-    public static final int SWARM_A = 8;
-    public static final int SWARM_B = 7;
-    
     SIModel theModel;
     private int hX, hY;
     private final Color color;
@@ -27,7 +27,7 @@ public class Swarm extends ArrayList<Bug> {
         theModel = m;
         total = 0;
         swarmID = id;
-        if (swarmID == SWARM_A) {
+        if (swarmID == Environment.ENV_SWARM_A) {
             color = Color.BLUE;
         } else {
             color = Color.RED;
@@ -74,9 +74,9 @@ public class Swarm extends ArrayList<Bug> {
         this.clear();
         if (!lockPosition) {
             do {
-                hX = Globals.random(100, Globals.WIDTH - 100);
-                hY = Globals.random(100, Globals.HEIGHT - 100);
-            } while (env.isWall(hX, hY));
+                hX = Globals.random(100, Environment.ENVIRONMENT_WIDTH - 100);
+                hY = Globals.random(100, Environment.ENVIRONMENT_HEIGHT - 100);
+            } while (env.isWallAt(hX, hY));
         }
         spawn();
     }
@@ -127,9 +127,9 @@ public class Swarm extends ArrayList<Bug> {
     }
 
     public int getPheremoneChannel() {
-        if (this.swarmID == SWARM_A) {
+        if (this.swarmID == Environment.ENV_SWARM_A) {
             return Pheremone.CHANNEL_HIVE_A;
-        } else if (this.swarmID == SWARM_B) {
+        } else if (this.swarmID == Environment.ENV_SWARM_B) {
             return Pheremone.CHANNEL_HIVE_B;
         }
         return -1;

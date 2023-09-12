@@ -14,9 +14,9 @@ public class SIModel implements Modelable {
 
     public SIModel() {
         environment = new Environment(this);
-        swarmA = new Swarm(this, Swarm.SWARM_A);
+        swarmA = new Swarm(this, Environment.ENV_SWARM_A);
         swarmA.configure(new SwarmConfiguration("data"));
-        swarmB = new Swarm(this, Swarm.SWARM_B);
+        swarmB = new Swarm(this, Environment.ENV_SWARM_B);
         swarmB.configure(new SwarmConfiguration("data"));
         initialize(false);
     }
@@ -64,7 +64,7 @@ public class SIModel implements Modelable {
     }
 
     public void emitPheremone(int x, int y, int val, int channel) {
-        environment.emitPheremone(x, y, val, channel);
+        environment.emitPheromone(x, y, val, channel);
     }
 
     public void createResource(int x, int y) {

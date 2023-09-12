@@ -9,8 +9,6 @@ public class Globals {
     public static boolean PHEREMODE3 = false;
     public static boolean CONTEST = false;
 
-    public static int WIDTH = 800;
-    public static int HEIGHT = 500;
     public static double MAX_SPEED = 1.5;
     public static int MASS = 1000;
     
