@@ -2,7 +2,7 @@ package swarmintelligence;
 
 import gui.SIFrame;
 
-public class SchotSwarmIntelligence {
+public class SwarmIntelligenceApplication {
 
     public static void main(String[] args) {
         Globals.updateParams();
