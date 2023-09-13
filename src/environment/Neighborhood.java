@@ -4,73 +4,46 @@ public class Neighborhood {
 
     private int[][] sight;
     private int[][][] smell;
-    private int cX, cY;
-    private boolean hasResource, hasHive;
+    private final int centerX, centerY;
+    private boolean hasResource;
     private double resourceX, resourceY;
+    private boolean hasHive;
     private double hiveX, hiveY;
     private Resource resource;
 
     public Neighborhood(int x, int y) {
-        cX = x;
-        cY = y;
-        hasResource = false;
+        this.centerX = x;
+        this.centerY = y;
+        this.hasResource = false;
+        this.hasHive = false;
     }
 
-    public void setSight(int[][] s) {
-        sight = s;
-    }
-    public int[][] getSight() {
-        return sight;
-    }
-    public int see(int x, int y) {
-        return sight[x][y];
-    }
+    public void setSight(int[][] s) { this.sight = s; }
+    public int see(int x, int y) { return this.sight[x][y]; }
 
-    public void setSmell(int[][][] s) {
-        smell = s;
-    }
-    public int[][][] getSmell() {
-        return smell;
-    }
-    public int smell(int channel, int x, int y) {
-        return smell[channel][x][y];
-    }
+    public void setSmell(int[][][] s) { this.smell = s; }
+    public int smell(int channel, int x, int y) { return this.smell[channel][x][y]; }
 
-    public void setCenter(int x, int y) {
-        cX = x;
-        cY = y;
-    }
     public int[] getCenter() {
-        int[] returnMe = new int[2];
-        returnMe[0] = cX;
-        returnMe[1] = cY;
-        return returnMe;
+        int[] result = new int[2];
+        result[0] = this.centerX;
+        result[1] = this.centerY;
+        return result;
     }
-    public int getHeight() {
-        return sight[0].length;
-    }
-    public int getWidth() {
-        return sight.length;
-    }
+    public int getHeight() { return this.sight[0].length; }
+    public int getWidth() { return this.sight.length; }
 
-    public boolean containsResource() {
-        return hasResource;
-    }
-    public void setResource(Resource rsrc) {
-        this.resource = rsrc;
-        this.resourceX = rsrc.getX();
-        this.resourceY = rsrc.getY();
+    public boolean containsResource() { return hasResource && !resource.isDepleted(); }
+    public void setResource(Resource resource) {
+        this.resource = resource;
+        this.resourceX = resource.getX();
+        this.resourceY = resource.getY();
         this.hasResource = true;
     }
-    public Resource getResource() {
-        return this.resource;
-    }
+    public Resource getResource() { return this.resource; }
     public double getResourceX() { return resourceX; }
     public double getResourceY() { return resourceY; }
 
-    public boolean containsHive(int id) {
-        return hasHive;
-    }
     public void setHive(int x, int y) {
         this.hiveX = x;
         this.hiveY = y;
@@ -79,14 +52,14 @@ public class Neighborhood {
     
     @Override
     public String toString() {
-        String returnMe = "Neighborhood centered at: (" + cX + ", " + cY + ")\n";
+        StringBuilder returnMe = new StringBuilder("Neighborhood centered at: (" + centerX + ", " + centerY + ")\n");
         for (int y = 0; y < sight[0].length; y++) {
             for (int x = 0; x < sight.length; x++) {
-                returnMe += sight[x][y];
+                returnMe.append(sight[x][y]);
             }
-            returnMe += "\n";
+            returnMe.append("\n");
         }
-        return returnMe;
+        return returnMe.toString();
     }
 
 }

@@ -3,35 +3,36 @@ package bugs;
 // Java imports
 import java.awt.Color;
 import java.awt.Graphics;
-import java.util.ArrayList;
 import java.util.Enumeration;
 import java.awt.BasicStroke;
 import java.awt.Graphics2D;
 
 // Swarm imports
-import environment.Pheremone;
-import swarmintelligence.Globals;
+import environment.Pheromone;
 import environment.Environment;
-import swarmintelligence.SIModel;
+import swarmintelligence.SwarmModel;
+import swarmintelligence.SwarmUtilities;
 
-public class Swarm extends ArrayList<Bug> {
+public class Swarm {
 
-    SIModel theModel;
+    private final SwarmModel swarmModel;
     private int hX, hY;
     private final Color color;
-    private int total;
     private final int swarmID;
     private SwarmConfiguration config;
+    private final Bugs bugs;
+    private int resourceTotal;
 
-    public Swarm(SIModel m, int id) {
-        theModel = m;
-        total = 0;
-        swarmID = id;
-        if (swarmID == Environment.ENV_SWARM_A) {
-            color = Color.BLUE;
+    public Swarm(SwarmModel m, int id) {
+        this.swarmModel = m;
+        this.resourceTotal = 0;
+        this.swarmID = id;
+        if (this.swarmID == Environment.ENV_SWARM_A) {
+            this.color = Color.BLUE;
         } else {
-            color = Color.RED;
+            this.color = Color.RED;
         }
+        this.bugs = new Bugs();
     }
 
     public void configure(SwarmConfiguration val) {
@@ -50,11 +51,11 @@ public class Swarm extends ArrayList<Bug> {
     }
     
     public Color getColor() {
-        return color;
+        return this.color;
     }
 
-    public int getTotal() {
-        return total;
+    public int getResourceTotal() {
+        return this.resourceTotal;
     }
 
     public int getX() {
@@ -70,34 +71,33 @@ public class Swarm extends ArrayList<Bug> {
     }
     
     public void init(Environment env, boolean lockPosition) {
-        total = 0;
-        this.clear();
+        this.resourceTotal = 0;
+        this.bugs.clear();
         if (!lockPosition) {
             do {
-                hX = Globals.random(100, Environment.ENVIRONMENT_WIDTH - 100);
-                hY = Globals.random(100, Environment.ENVIRONMENT_HEIGHT - 100);
+                hX = SwarmUtilities.random(100, Environment.ENVIRONMENT_WIDTH - 100);
+                hY = SwarmUtilities.random(100, Environment.ENVIRONMENT_HEIGHT - 100);
             } while (env.isWallAt(hX, hY));
         }
         spawn();
     }
     
     public void reset() {
-        total = 0;
-        this.clear();
+        this.resourceTotal = 0;
+        this.bugs.clear();
         spawn();
     }
 
     public void spawn() {
-        if (config != null) {
-            int b = 0;
-            for (BugConfiguration bc : config) {
-                for (int i = 0; i < bc.getSize(); i++) {
-                    Bug bug = new Bug(this, hX, hY, color, b);
-                    bug.setAngle(Globals.random(0, 2 * Math.PI));
+        if (this.config != null) {
+            int bugCount = 0;
+            for (BugConfiguration bugConfiguration : this.config) {
+                for (int ii = 0; ii < bugConfiguration.getSize(); ii++) {
+                    Bug bug = new Bug(this, hX, hY, color, bugCount);
+                    bug.setAngle(SwarmUtilities.randomAngle());
                     bug.setSpeed(1);
-                    bug.configure(bc);
-                    this.add(bug);
-                    b++;
+                    bugConfiguration.configure(bug);
+                    this.bugs.add(bug);
                 }
             }
         }
@@ -115,22 +115,22 @@ public class Swarm extends ArrayList<Bug> {
 //    }
 
     public void deposit(int x) {
-        total += x;
+        this.resourceTotal += x;
     }
 
     public void updateLocation(int x, int y) {
-        theModel.updateLocation(x, y, 2);
+        this.swarmModel.updateLocation(x, y, 2);
     }
 
-    public void emitPheremone(int x, int y, int val, int channel) {
-        theModel.emitPheremone(x, y, val, channel);
+    public void emitPheromone(int x, int y, int val, int channel) {
+        this.swarmModel.emitPheromone(x, y, val, channel);
     }
 
-    public int getPheremoneChannel() {
+    public int getPheromoneChannel() {
         if (this.swarmID == Environment.ENV_SWARM_A) {
-            return Pheremone.CHANNEL_HIVE_A;
+            return Pheromone.CHANNEL_HIVE_A;
         } else if (this.swarmID == Environment.ENV_SWARM_B) {
-            return Pheremone.CHANNEL_HIVE_B;
+            return Pheromone.CHANNEL_HIVE_B;
         }
         return -1;
     }
@@ -141,18 +141,18 @@ public class Swarm extends ArrayList<Bug> {
         g2.setStroke(new BasicStroke(3));
         g2.setColor(color);
         g2.drawOval(hX - r, hY - r, 2 * r, 2 * r);
-        for (Bug bug : this) {
+        for (Bug bug : this.bugs) {
             bug.paint(g);
         }
     }
 
     public void step() {
         synchronized(this) {
-            for (Bug bug : this) {
+            for (Bug bug : this.bugs) {
                 bug.updateLocation();
             }
-            for (Bug bug : this) {
-                bug.setNeighborhood(theModel.getNeighborhood(swarmID, bug.getX(), bug.getY(), bug.getPheremoneInputChannel()));
+            for (Bug bug : this.bugs) {
+                bug.setNeighborhood(this.swarmModel.getNeighborhood(swarmID, bug.getX(), bug.getY()));
                 bug.step();
             }
         }

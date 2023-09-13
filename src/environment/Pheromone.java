@@ -1,13 +1,12 @@
-/*
- Copyright © 2018 by Paul K. Schot
- All rights reserved.
- */
 package environment;
 
+// Java imports
 import java.awt.Color;
+
+// Swarm imports
 import swarmintelligence.Globals;
 
-public class Pheremone {
+public class Pheromone {
 
     boolean DEBUG = true;
 

@@ -1,43 +1,47 @@
 package swarmintelligence;
 
+// Java imports
+import java.awt.Graphics;
+
+// Swarm imports
 import environment.Neighborhood;
 import environment.Environment;
 import bugs.Swarm;
 import bugs.SwarmConfiguration;
-import java.awt.Graphics;
 import mvc.Modelable;
 
-public class SIModel implements Modelable {
+public class SwarmModel implements Modelable {
 
-    private Environment environment = null;
-    public Swarm swarmA, swarmB;
+    private final Environment environment;
+    private final Swarm swarmA, swarmB;
 
-    public SIModel() {
-        environment = new Environment(this);
-        swarmA = new Swarm(this, Environment.ENV_SWARM_A);
-        swarmA.configure(new SwarmConfiguration("data"));
-        swarmB = new Swarm(this, Environment.ENV_SWARM_B);
-        swarmB.configure(new SwarmConfiguration("data"));
+    public SwarmModel() {
+        this.environment = new Environment(this);
+        this.swarmA = new Swarm(this, Environment.ENV_SWARM_A);
+        this.swarmA.configure(new SwarmConfiguration("data"));
+        this.swarmB = new Swarm(this, Environment.ENV_SWARM_B);
+        this.swarmB.configure(new SwarmConfiguration("data"));
         initialize(false);
     }
     
     private void initialize(boolean lockHives) {
-        swarmA.init(environment, lockHives);
-        swarmB.init(environment, lockHives);
+        this.swarmA.init(this.environment, lockHives);
+        this.swarmB.init(this.environment, lockHives);
         if (Globals.CONTEST) {
-            environment.setSwarms(swarmA, swarmB);
+            this.environment.setSwarms(this.swarmA, this.swarmB);
         } else {
-            environment.setSwarms(swarmA, null);
+            this.environment.setSwarms(this.swarmA, null);
         }
     }
-    
+
+    public Swarm getSwarmA() { return this.swarmA; }
+    public Swarm getSwarmB() { return this.swarmB; }
+
     // restart the simulation while keeping all variables unchanged
     public void restart() {
-        swarmA.reset();
-        if (Globals.CONTEST) {
-            swarmB.reset();
-        }
-        environment.restart(true, true);
+        if (this.swarmA != null) this.swarmA.reset();
+        if (this.swarmB != null) this.swarmB.reset();
+        this.environment.restart(true, true);
         initialize(true);
     }
 
@@ -51,11 +55,9 @@ public class SIModel implements Modelable {
 //                }
 //            }
 //        }
-        swarmA.reset();
-        if (Globals.CONTEST) {
-            swarmB.reset();
-        }
-        environment.restart(lockResources, lockWalls);
+        if (this.swarmA != null) this.swarmA.reset();
+        if (this.swarmB != null) this.swarmB.reset();
+        this.environment.restart(lockResources, lockWalls);
         initialize(lockHives);
     }
     
@@ -63,16 +65,16 @@ public class SIModel implements Modelable {
         environment.setValue(x, y, value);
     }
 
-    public void emitPheremone(int x, int y, int val, int channel) {
+    public void emitPheromone(int x, int y, int val, int channel) {
         environment.emitPheromone(x, y, val, channel);
     }
 
     public void createResource(int x, int y) {
-        environment.addResource(x, y);
+        environment.addResourceAt(x, y);
     }
     
-    public Neighborhood getNeighborhood(int id, double x, double y, int pherChannel) {
-        return environment.getNeighborhood(id, x, y, pherChannel);
+    public Neighborhood getNeighborhood(int id, double x, double y) {
+        return environment.getNeighborhood(id, x, y);
     }
 
     @Override
@@ -88,9 +90,9 @@ public class SIModel implements Modelable {
     @Override
     public boolean isDone() {
         if (Globals.NUM_GOALS != 0) {
-            int swSum = swarmA.getTotal();
+            int swSum = swarmA.getResourceTotal();
             if (swarmB != null) {
-                swSum += swarmB.getTotal();
+                swSum += swarmB.getResourceTotal();
             }
             return swSum == Globals.totalMass();
         }
@@ -109,9 +111,9 @@ public class SIModel implements Modelable {
     
     public int[] getTotals() {
         int[] result = new int[2];
-        result[0] = swarmA.getTotal();
+        result[0] = swarmA.getResourceTotal();
         if (Globals.CONTEST) {
-            result[1] = swarmB.getTotal();
+            result[1] = swarmB.getResourceTotal();
         }
         return result;
     }

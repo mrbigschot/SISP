@@ -7,7 +7,7 @@ public class SIFrame extends javax.swing.JFrame {
     
     public SIFrame() {
         initComponents();
-        setBounds(0, 0, 800, 600);
+        setBounds(0, 0, 1215, 930);
         setTitle("Swarm Intelligence");
         thePanel = new SIPanel(this);
         controls = new ControlsFrame(this, thePanel.getModel(), thePanel.getController());

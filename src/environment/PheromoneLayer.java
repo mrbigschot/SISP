@@ -6,6 +6,7 @@ import swarmintelligence.Globals;
 public class PheromoneLayer {
 
     private int[][] pheromones;
+    private int pheromoneTicks = 0;
     private final int width;
     private final int height;
 
@@ -27,21 +28,26 @@ public class PheromoneLayer {
     public void emitPheromone(int x, int y, int value) {
         this.setPheromoneLevelAt(x, y, Math.max(value, this.getPheromoneLevelAt(x, y)));
     }
-    public void dilute(Environment environment) {
-        int[][] newPheromones = new int[this.width][this.height];
-        for (int ii = 2; ii < this.width - 2; ii++) {
-            for (int jj = 2; jj < this.height - 2; jj++) {
-                if (this.hasPheromoneAt(ii, jj)) {
-                    int n = (int)(getPheromoneLevelAt(ii, jj) * Globals.DECAY_RATE);
-                    addPheromone(ii, jj, n, newPheromones, environment);
-                    addPheromone(ii - 1, jj, n, newPheromones, environment);
-                    addPheromone(ii + 1, jj, n, newPheromones, environment);
-                    addPheromone(ii, jj - 1, n, newPheromones, environment);
-                    addPheromone(ii, jj + 1, n, newPheromones, environment);
+    public void dilute(Environment environment, int persistence) {
+        if (this.pheromoneTicks == persistence) {
+            this.pheromoneTicks = 0;
+            int[][] newPheromones = new int[this.width][this.height];
+            for (int ii = 2; ii < this.width - 2; ii++) {
+                for (int jj = 2; jj < this.height - 2; jj++) {
+                    if (this.hasPheromoneAt(ii, jj)) {
+                        int n = (int)(getPheromoneLevelAt(ii, jj) * Globals.DECAY_RATE);
+                        addPheromone(ii, jj, n, newPheromones, environment);
+                        addPheromone(ii - 1, jj, n, newPheromones, environment);
+                        addPheromone(ii + 1, jj, n, newPheromones, environment);
+                        addPheromone(ii, jj - 1, n, newPheromones, environment);
+                        addPheromone(ii, jj + 1, n, newPheromones, environment);
+                    }
                 }
             }
+            this.pheromones = newPheromones;
+        } else {
+            this.pheromoneTicks++;
         }
-        this.pheromones = newPheromones;
     }
 
     private static void addPheromone(int x, int y, int value, int[][] pheromones, Environment environment) {

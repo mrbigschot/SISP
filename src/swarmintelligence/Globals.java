@@ -26,35 +26,7 @@ public class Globals {
     public static int PHER_2_PERSISTENCE = 25;
     public static int PHER_3_PERSISTENCE = 25;
 
-    public static int random(int min, int max) {
-        double d = Math.random();
-        double range = (max - min) * d;
-        return (int) (range + min);
-    }
-
-    public static double random(double min, double max) {
-        double d = Math.random();
-        double range = (max - min) * d;
-        return range + min;
-    }
-
-    public static boolean coinFlip(double chance) {
-        return Math.random() < chance;
-    }
-
-    public static void toggleContest() {
-        CONTEST = !CONTEST;
-        updateParams();
-    }
-    
-    public static void updateParams() {
-//        double[] data = loadParams();
-//        if (CONTEST) {
-//            setParams(false, data);
-//        } else {
-//            setParams(true, data);
-//        }
-    }
+    public static void toggleContest() { CONTEST = !CONTEST; }
     
     public static int totalMass() {
         return NUM_GOALS * MASS;

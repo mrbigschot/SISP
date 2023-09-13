@@ -1,7 +1,3 @@
-/*
- Copyright © 2019 by Paul K. Schot
- All rights reserved.
- */
 package bugs;
 
 public class BugConfiguration {
@@ -12,10 +8,7 @@ public class BugConfiguration {
     private boolean canGrab = false;
     private int size = 0;
     
-    public BugConfiguration() {
-        
-    }
-    
+    public BugConfiguration() { }
     public BugConfiguration(String data) {
         String[] values = data.split(";");
         this.weightAvoid = Double.parseDouble(values[0]);
@@ -39,8 +32,9 @@ public class BugConfiguration {
     public int getSize() { return (int)(this.size); }
     public void setSize(int value) { this.size = value; }
     
-    public void configureBug(Bug bug) {
+    public void configure(Bug bug) {
         bug.setWeights(this.weightAvoid, this.weightMatch, this.weightCondense);
+        bug.setCanGrab(this.canGrab);
     }
     
     @Override

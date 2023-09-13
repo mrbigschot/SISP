@@ -1,107 +1,108 @@
 package bugs;
 
+// Java imports
 import java.awt.Color;
 import java.awt.Graphics;
 
+// Swarm imports
 import environment.Environment;
 import swarmintelligence.Globals;
 import swarmintelligence.Grabbable;
 import environment.IEnvironment;
 import environment.Neighborhood;
-import environment.Pheremone;
+import environment.Pheromone;
 import swarmintelligence.SIObject;
+import swarmintelligence.SwarmUtilities;
 
-public class Bug extends SIObject {
+public class Bug extends SIObject implements IBug {
 
-    private Swarm mySwarm;
+    private Swarm swarm;
     private Color color;
-    private int channelHive = Pheremone.CHANNEL_HIVE_A;
-    private int channelResource = Pheremone.CHANNEL_RESOURCE_A;
+    private int channelHive = Pheromone.CHANNEL_HIVE_A;
+    private int channelResource = Pheromone.CHANNEL_RESOURCE_A;
     
     double wAvoid = 0.0;
     double wCondense = 0.0;
     double wMatch = 0.0;
     boolean grabber = true;
 
-    private int adventurous = 0;
     private int activeDelay = 0;
     
-    double speed;
-    double orientation; // radians, 0 is along +x axis, PI/2 is along +y axis
-    double addSpeed;
-    double addAngle;
-    int[] pherOut;
-    int hX, hY;
-    int carry = 0;
+    private double speed;
+    private double orientation; // radians, 0 is along +x axis, PI/2 is along +y axis
+    private double addSpeed;
+    private double addAngle;
+    private int[] pheromoneOut;
+    private int hX, hY;
+    private int carry = 0;
 
-    boolean turning, turnLeft;
+    private boolean turning, turnLeft;
 
-    boolean seekingResource = true;
-    int timeSinceResource = -1;
-    int timeSinceHive = 0;
-    int smellThreshold = 100;
-    
-    int[][] pherMem;
-    double goalX, goalY;
+    private int seekingType = SEEKING_RESOURCE;
+    private int timeSinceResource = -1;
+    private int timeSinceHive = 0;
+    private final int smellThreshold;
+    private final int adventurous;
 
-    int wallCounter;
-    int smellDelay;
+    private int[][] pheromoneMemory;
+    private double goalX, goalY;
 
-    Neighborhood currentNeighborhood, previousNeighborhood;
-    Grabbable grabbed;
+    private int wallCounter;
+    private int smellDelay;
+
+    private Neighborhood currentNeighborhood, previousNeighborhood;
+    private Grabbable grabbed;
 
     public Bug() {
-        pherMem = new int[Globals.NUM_CHANNELS][3];
-        this.pherOut = new int[Globals.NUM_CHANNELS];
-        this.adventurous = Globals.random(50, Globals.MAX_SMELL);
+        pheromoneMemory = new int[Globals.NUM_CHANNELS][3];
+        this.pheromoneOut = new int[Globals.NUM_CHANNELS];
+        this.smellThreshold = SwarmUtilities.random(50, 250);
+        this.adventurous = SwarmUtilities.random(50, Globals.MAX_SMELL);
     }
 
     public Bug(Swarm s, double x, double y, Color c, int b) {
         this();
         this.activeDelay = b;
-        mySwarm = s;
+        this.swarm = s;
+        this.color = c;
         this.x = x;
-        color = c;
-        if (mySwarm.getSwarmID() == Environment.ENV_SWARM_A) {
-            channelHive = Pheremone.CHANNEL_HIVE_A;
-            channelResource = Pheremone.CHANNEL_RESOURCE_A;
-        } else {
-            channelHive = Pheremone.CHANNEL_HIVE_B;
-            channelResource = Pheremone.CHANNEL_RESOURCE_A;
-        }
         this.y = y;
-        this.hX = (int) x;
-        this.hY = (int) y;
-    }
-    
-    public int getPheremoneInputChannel() {
-        if (seekingResource) {
-            return channelResource;
+        this.hX = (int)x;
+        this.hY = (int)y;
+        if (swarm.getSwarmID() == Environment.ENV_SWARM_A) {
+            channelHive = Pheromone.CHANNEL_HIVE_A;
+            channelResource = Pheromone.CHANNEL_RESOURCE_A;
         } else {
-            return channelHive;
+            channelHive = Pheromone.CHANNEL_HIVE_B;
+            channelResource = Pheromone.CHANNEL_RESOURCE_B;
         }
     }
-    
-    public void configure(BugConfiguration config) {
-        this.setWeights(config.getWeightAvoid(), config.getWeightMatch(), config.getWeightCondense());
-        this.grabber = config.getCanGrab();
+
+    public boolean isSeekingResource() {
+        return this.seekingType == SEEKING_RESOURCE;
     }
-    
+    public boolean isSeekingHive() {
+        return this.seekingType == SEEKING_HIVE;
+    }
+    public boolean isSeekingDeposit() {
+        return this.seekingType == SEEKING_DEPOSIT;
+    }
+
     @Override
     public void step() {
         if (this.activeDelay == 0) {
             if (timeSinceResource > -1 && timeSinceResource < Globals.MAX_SMELL) timeSinceResource++;
             if (timeSinceHive > -1 && timeSinceHive < Globals.MAX_SMELL) timeSinceHive++;
             assessEnvironment();
-            if (seekingResource) {
+            if (this.isSeekingResource()) {
                 seekResource();            
-            } else if (carry > 0) {
+            } else if (this.isSeekingDeposit()) {
                 seekDeposit();
-            } else {
+            } else if (this.isSeekingHive()) {
                 seekHive();
             }
             calcPher();
-            emitPher();
+            emitPheromone();
             move();
         } else {
             this.activeDelay--;
@@ -120,11 +121,11 @@ public class Bug extends SIObject {
     // returning to hive, but will be distracted by resources
     private void seekHive() {
         if (currentNeighborhood.containsResource()) {
-            seekingResource = true;
+            this.seekingType = SEEKING_RESOURCE;
             towardGoal();
         } else if (nearLocation(hX - x, hY - y)) {
             deposit();
-            seekingResource = true;
+            this.seekingType = SEEKING_RESOURCE;
             timeSinceHive = 0;
             addAngle = Math.PI;
         } else {
@@ -136,7 +137,7 @@ public class Bug extends SIObject {
     private void seekDeposit() {
         if (nearLocation(hX - x, hY - y)) {
             deposit();
-            seekingResource = true;
+            this.seekingType = SEEKING_RESOURCE;
             timeSinceHive = 0;
             addAngle = Math.PI;
         } else {
@@ -145,7 +146,7 @@ public class Bug extends SIObject {
     }
     
     private void deposit() {
-        mySwarm.deposit(carry);
+        swarm.deposit(carry);
         carry = 0;
     }
     
@@ -163,59 +164,60 @@ public class Bug extends SIObject {
     }
 
     public void update() {
-        if (seekingResource) {
+        if (this.isSeekingResource()) {
             if (hasSmelled(this.channelResource)) {
-                followPheremone(this.channelResource);
+                followPheromone(this.channelResource);
             } else if (this.timeSinceHive >= this.adventurous) {
-                this.seekingResource = false;
+                this.seekingType = SEEKING_HIVE;
             } else if (hasSmelled(this.channelHive)) {
-                avoidPheremone(this.channelHive);
+                avoidPheromone(this.channelHive);
             } else {
                 defaultStep();
             }
-        } else {
+        } else if (this.isSeekingDeposit()) {
+            if (hasSmelled(this.channelHive)) {
+                followPheromone(this.channelHive);
+            } else {
+                defaultStep();
+            }
+        } else if (this.isSeekingHive()) {
             if (hasSmelled(this.channelResource)) {
-                followPheremone(this.channelResource);
+                followPheromone(this.channelResource);
             } else if (hasSmelled(this.channelHive)) {
-                followPheremone(this.channelHive);
+                followPheromone(this.channelHive);
             } else {
                 defaultStep();
             }
         }
     }
 
-    public void followPheremone(int channel) {
+    public void followPheromone(int channel) {
         if (smellDelay == 0) {
-            smellDelay = 3;
+            smellDelay = PHEROMONE_REACTION_SPEED;
             int[] smelliest = upGradient(channel);
             addAngle = matchAngle(Math.atan2((double)smelliest[1], (double)smelliest[0]));
             speed = 1 - (Math.abs(addAngle) / Math.PI);
-        } else {
-            if (smellDelay > 0) {
-                smellDelay--;
-            }
+        } else if (smellDelay > 0) {
+            smellDelay--;
         }
     }
     
-    public void avoidPheremone(int channel) {
+    public void avoidPheromone(int channel) {
         if (smellDelay == 0) {
-            smellDelay = 3;
+            smellDelay = PHEROMONE_REACTION_SPEED;
             int[] smelliest = downGradient(channel);
             addAngle = matchAngle(Math.atan2((double)smelliest[1], (double)smelliest[0]));
             speed = 1 - (Math.abs(addAngle) / Math.PI);
-        } else {
-            if (smellDelay > 0) {
-                smellDelay--;
-            }
+        } else if (smellDelay > 0) {
+            smellDelay--;
         }
     }
     
     private boolean hasSmelled(int channel) {
-        if (Globals.CONTROL) {
-            return false;
-        }
-        for (int i = 0; i < pherMem[channel].length; i++) {
-            if (pherMem[channel][i] > smellThreshold) {
+        if (Globals.CONTROL) return false;
+
+        for (int ii = 0; ii < pheromoneMemory[channel].length; ii++) {
+            if (pheromoneMemory[channel][ii] > smellThreshold) {
                 return true;
             }
         }
@@ -264,14 +266,14 @@ public class Bug extends SIObject {
     
     private void calcPher() {
         if (timeSinceResource > -1) {
-            pherOut[this.channelResource] = Math.max(Globals.MAX_SMELL - timeSinceResource, 0);
+            pheromoneOut[this.channelResource] = Math.max(Globals.MAX_SMELL - timeSinceResource, 0);
         } else {
-            pherOut[this.channelResource] = 0;
+            pheromoneOut[this.channelResource] = 0;
         }
         if (timeSinceHive > -1) {
-            pherOut[this.channelHive] = Math.max(Globals.MAX_SMELL - timeSinceHive, 0);
+            pheromoneOut[this.channelHive] = Math.max(Globals.MAX_SMELL - timeSinceHive, 0);
         } else {
-            pherOut[this.channelHive] = 0;
+            pheromoneOut[this.channelHive] = 0;
         }
     }
 
@@ -280,14 +282,15 @@ public class Bug extends SIObject {
             goalX = currentNeighborhood.getResourceX();
             goalY = currentNeighborhood.getResourceY();
         }
-        for (int i = 0; i < Globals.NUM_CHANNELS; i++) {
-            for (int j = pherMem[i].length - 1; j > 0; j--) {
-                pherMem[i][j] = pherMem[i][j - 1];
+        for (int channel = 0; channel < Globals.NUM_CHANNELS; channel++) {
+            for (int ii = pheromoneMemory[channel].length - 1; ii > 0; ii--) {
+                pheromoneMemory[channel][ii] = pheromoneMemory[channel][ii - 1];
             }
         }
         int centerX = currentNeighborhood.getCenter()[0];
         int centerY = currentNeighborhood.getCenter()[1];
-        pherMem[this.channelResource][0] = currentNeighborhood.smell(this.channelResource, centerX, centerY);
+        pheromoneMemory[this.channelResource][0] = currentNeighborhood.smell(this.channelResource, centerX, centerY);
+        pheromoneMemory[this.channelHive][0] = currentNeighborhood.smell(this.channelHive, centerX, centerY);
     }
 
     public void setNeighborhood(Neighborhood n) {
@@ -299,7 +302,7 @@ public class Bug extends SIObject {
     }
 
     public void updateLocation() {
-        mySwarm.updateLocation((int) x, (int) y);
+        swarm.updateLocation((int) x, (int) y);
     }
 
     public boolean nearLocation(double dx, double dy) {
@@ -313,16 +316,12 @@ public class Bug extends SIObject {
                 carry = currentNeighborhood.getResource().gather();
                 timeSinceResource = 0;
             }
-            if (carry != 0) {
-                seekingResource = false;
-            }
-            if (grabber) {
-                grabbed = currentNeighborhood.getResource();
-            }
+            if (carry > 0) this.seekingType = SEEKING_DEPOSIT;
+
+            if (grabber) grabbed = currentNeighborhood.getResource();
         } else {
-            if (speed < 1) {
-                addSpeed = .1;
-            }
+            if (speed < 1) addSpeed = .1;
+
             double angle = Math.atan2(goalY - y, goalX - x);
             addAngle = matchAngle(angle);
         }
@@ -465,8 +464,8 @@ public class Bug extends SIObject {
         } else {
             returnMe = .1;
         }
-        if (Globals.coinFlip(.1)) { // 10% of the time add some noise
-            if (Globals.coinFlip(.5)) {
+        if (SwarmUtilities.coinFlip(.1)) { // 10% of the time add some noise
+            if (SwarmUtilities.coinFlip(.5)) {
                 returnMe += .0005;
             } else {
                 returnMe -= .0005;
@@ -490,7 +489,7 @@ public class Bug extends SIObject {
         double ny = y + (speed * Math.sin(orientation));
         if (facingWall(nx, ny)) {
             if (wallCounter == 0) {
-                turnLeft = Globals.coinFlip(.5);
+                turnLeft = SwarmUtilities.coinFlip(.5);
             }
             if (turnLeft) {
                 addToAngle(-.5);
@@ -507,12 +506,12 @@ public class Bug extends SIObject {
         }
     }
 
-    private void emitPher() {
-        if (pherOut[this.channelHive] > 0) {
-            mySwarm.emitPheremone((int)x, (int)y, pherOut[this.channelHive], this.channelHive);
+    private void emitPheromone() {
+        if (pheromoneOut[this.channelHive] > 0) {
+            swarm.emitPheromone((int)x, (int)y, pheromoneOut[this.channelHive], this.channelHive);
         }
-        if (pherOut[this.channelResource] > 0) {
-            mySwarm.emitPheremone((int)x, (int)y, pherOut[this.channelResource], this.channelResource);
+        if (pheromoneOut[this.channelResource] > 0) {
+            swarm.emitPheromone((int)x, (int)y, pheromoneOut[this.channelResource], this.channelResource);
         }
     }
 
@@ -528,6 +527,9 @@ public class Bug extends SIObject {
         wAvoid = wA;
         wMatch = wM;
         wCondense = wC;
+    }
+    public void setCanGrab(boolean value) {
+        this.grabber = value;
     }
 
     public void setSpeed(double s) {
@@ -586,9 +588,9 @@ public class Bug extends SIObject {
     public void paint(Graphics g) {
         g.setColor(color);
         
-        int size = 3;
+        int size = 4;
         if (carry > 0) {
-            size = 4;
+            size = 6;
         }
         int drawX = (int)x - size / 2;
         int drawY = (int)y - size / 2;

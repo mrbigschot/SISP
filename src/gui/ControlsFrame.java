@@ -2,15 +2,17 @@ package gui;
 
 import mvc.Controller;
 import swarmintelligence.Globals;
-import swarmintelligence.SIModel;
+import swarmintelligence.SwarmModel;
 import bugs.BugConfiguration;
 import bugs.SwarmConfiguration;
+import swarmintelligence.SwarmUtilities;
+
 import javax.swing.DefaultListModel;
 
 public class ControlsFrame extends javax.swing.JFrame {
 
     private SIFrame theFrame;
-    private SIModel theModel;
+    private SwarmModel theModel;
     private Controller theController;
     private boolean lockHives, lockResources, lockWalls;
     private SwarmConfiguration swarmConfig;
@@ -20,12 +22,12 @@ public class ControlsFrame extends javax.swing.JFrame {
 
     public ControlsFrame() {
         initComponents();
-        this.setLocation(800, 0);
+        this.setLocation(1215, 0);
         setTitle("Controls");
         setVisible(true);
     }
 
-    public ControlsFrame(SIFrame f, SIModel m, Controller c) {
+    public ControlsFrame(SIFrame f, SwarmModel m, Controller c) {
         this();
         theFrame = f;
         theModel = m;
@@ -34,7 +36,7 @@ public class ControlsFrame extends javax.swing.JFrame {
     }
 
     private void init() {
-        swarmConfig = theModel.swarmA.getConfiguration();
+        swarmConfig = theModel.getSwarmA().getConfiguration();
         configs = new DefaultListModel<>();
         for (BugConfiguration bugConfig : swarmConfig) {
             configs.addElement(bugConfig);
@@ -866,7 +868,7 @@ public class ControlsFrame extends javax.swing.JFrame {
 
     private void setButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setButtonActionPerformed
         swarmConfig = new SwarmConfiguration(configs.elements());
-        theModel.swarmA.configure(swarmConfig);
+        theModel.getSwarmA().configure(swarmConfig);
         restart();
     }//GEN-LAST:event_setButtonActionPerformed
 
@@ -938,10 +940,10 @@ public class ControlsFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_standardViewToggleStateChanged
 
     private void randomizeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_randomizeButtonActionPerformed
-        avoidSlider.setValue(Globals.random(0, 100));
-        matchSlider.setValue(Globals.random(0, 100));
-        condenseSlider.setValue(Globals.random(0, 100));
-        grabCheck.setSelected(Globals.coinFlip(.5));
+        avoidSlider.setValue(SwarmUtilities.random(0, 100));
+        matchSlider.setValue(SwarmUtilities.random(0, 100));
+        condenseSlider.setValue(SwarmUtilities.random(0, 100));
+        grabCheck.setSelected(SwarmUtilities.coinFlip(.5));
     }//GEN-LAST:event_randomizeButtonActionPerformed
 
     private void pher3ToggleStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_pher3ToggleStateChanged

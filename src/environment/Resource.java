@@ -5,42 +5,39 @@ import java.awt.Color;
 import java.awt.Graphics;
 
 // Swarm imports
-import swarmintelligence.Globals;
-import swarmintelligence.Grabbable;
-import swarmintelligence.SIModel;
-import swarmintelligence.SIObject;
+import swarmintelligence.*;
 
 public class Resource extends SIObject implements Grabbable {
 
     int mass;
     double fX, fY;
-    SIModel theModel;
+    SwarmModel theModel;
 
-    public Resource(SIModel model) {
+    public Resource(SwarmModel model) {
         theModel = model;
         mass = Globals.MASS;
-        this.x = Globals.random(10, IEnvironment.ENVIRONMENT_WIDTH - 10);
-        this.y = Globals.random(10, IEnvironment.ENVIRONMENT_HEIGHT - 10);
-        setOX(x);
-        setOY(y);
+        this.x = SwarmUtilities.random(10, IEnvironment.ENVIRONMENT_WIDTH - 10);
+        this.y = SwarmUtilities.random(10, IEnvironment.ENVIRONMENT_HEIGHT - 10);
+        setOriginalX(x);
+        setOriginalY(y);
     }
 
-    public Resource(SIModel model, int x, int y) {
+    public Resource(SwarmModel model, int x, int y) {
         this(model);
         this.x = x;
         this.y = y;
-        setOX(x);
-        setOY(y);
+        setOriginalX(x);
+        setOriginalY(y);
     }
 
     public void reset(boolean lockPosition) {
         mass = Globals.MASS;
         if (!lockPosition) {
-            this.x = Globals.random(10, IEnvironment.ENVIRONMENT_WIDTH - 10);
-            this.y = Globals.random(10, IEnvironment.ENVIRONMENT_HEIGHT - 10);
+            this.x = SwarmUtilities.random(10, IEnvironment.ENVIRONMENT_WIDTH - 10);
+            this.y = SwarmUtilities.random(10, IEnvironment.ENVIRONMENT_HEIGHT - 10);
         } else {
-            this.x = getOX();
-            this.y = getOY();
+            this.x = getOriginalX();
+            this.y = getOriginalY();
         }
     }
 
@@ -85,7 +82,7 @@ public class Resource extends SIObject implements Grabbable {
         y += fY;
         fX = 0;
         fY = 0;
-        theModel.emitPheremone((int)x, (int)y, (int)(getDepletion() * Globals.MAX_SMELL), Pheremone.CHANNEL_RESOURCE_A);
+        theModel.emitPheromone((int)x, (int)y, (int)(getDepletion() * Globals.MAX_SMELL), Pheromone.CHANNEL_RESOURCE_A);
     }
 
     @Override

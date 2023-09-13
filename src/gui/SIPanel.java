@@ -3,17 +3,17 @@ package gui;
 import java.awt.Graphics;
 import mvc.*;
 import swarmintelligence.Globals;
-import swarmintelligence.SIModel;
+import swarmintelligence.SwarmModel;
 
 public class SIPanel extends javax.swing.JPanel implements Viewable {
 
     SIFrame theFrame;
     Controller theController;
-    SIModel theModel;
+    SwarmModel theModel;
     
     public SIPanel() {
         initComponents();
-        theModel = new SIModel();
+        theModel = new SwarmModel();
         theController = new Controller(this, theModel);
     }
     
@@ -27,7 +27,7 @@ public class SIPanel extends javax.swing.JPanel implements Viewable {
         theFrame.repaint();
     }
     
-    public SIModel getModel() {
+    public SwarmModel getModel() {
         return theModel;
     }
     
