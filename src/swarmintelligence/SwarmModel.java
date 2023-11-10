@@ -9,6 +9,7 @@ import environment.Environment;
 import bugs.Swarm;
 import bugs.SwarmConfiguration;
 import mvc.Modelable;
+import pheromone.PheromoneChannel;
 
 public class SwarmModel implements Modelable {
 
@@ -33,6 +34,8 @@ public class SwarmModel implements Modelable {
             this.environment.setSwarms(this.swarmA, null);
         }
     }
+
+    public Environment getEnvironment() { return this.environment; }
 
     public Swarm getSwarmA() { return this.swarmA; }
     public Swarm getSwarmB() { return this.swarmB; }
@@ -65,7 +68,7 @@ public class SwarmModel implements Modelable {
         environment.setValue(x, y, value);
     }
 
-    public void emitPheromone(int x, int y, int val, int channel) {
+    public void emitPheromone(int x, int y, int val, PheromoneChannel channel) {
         environment.emitPheromone(x, y, val, channel);
     }
 
@@ -89,15 +92,16 @@ public class SwarmModel implements Modelable {
 
     @Override
     public boolean isDone() {
-        if (Globals.NUM_GOALS != 0) {
+        if (this.environment.getSettings().getResourceCount() > 0) {
             int swSum = swarmA.getResourceTotal();
             if (swarmB != null) {
                 swSum += swarmB.getResourceTotal();
             }
-            return swSum == Globals.totalMass();
+            return swSum == this.getTotalResourceMassAvailable();
         }
         return false;
     }
+    public int getTotalResourceMassAvailable() { return this.environment.totalResourceMassAvailable(); }
 
     public void paint(Graphics g) {
         environment.paint(g);

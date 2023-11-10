@@ -8,15 +8,15 @@ import java.awt.BasicStroke;
 import java.awt.Graphics2D;
 
 // Swarm imports
-import environment.Pheromone;
 import environment.Environment;
+import pheromone.PheromoneChannel;
 import swarmintelligence.SwarmModel;
 import swarmintelligence.SwarmUtilities;
 
-public class Swarm {
+public class Swarm implements ISwarm {
 
     private final SwarmModel swarmModel;
-    private int hX, hY;
+    private int hiveX, hiveY;
     private final Color color;
     private final int swarmID;
     private SwarmConfiguration config;
@@ -28,9 +28,9 @@ public class Swarm {
         this.resourceTotal = 0;
         this.swarmID = id;
         if (this.swarmID == Environment.ENV_SWARM_A) {
-            this.color = Color.BLUE;
+            this.color = SWARM_COLOR_A;
         } else {
-            this.color = Color.RED;
+            this.color = SWARM_COLOR_B;
         }
         this.bugs = new Bugs();
     }
@@ -38,7 +38,6 @@ public class Swarm {
     public void configure(SwarmConfiguration val) {
         this.config = val;
     }
-    
     public void configure(Enumeration<BugConfiguration> val) {
         this.config = new SwarmConfiguration();
         while (val.hasMoreElements()) {
@@ -59,15 +58,13 @@ public class Swarm {
     }
 
     public int getX() {
-        return hX;
+        return this.hiveX;
     }
-
     public int getY() {
-        return hY;
+        return this.hiveY;
     }
-
     public int getSwarmID() {
-        return swarmID;
+        return this.swarmID;
     }
     
     public void init(Environment env, boolean lockPosition) {
@@ -75,9 +72,9 @@ public class Swarm {
         this.bugs.clear();
         if (!lockPosition) {
             do {
-                hX = SwarmUtilities.random(100, Environment.ENVIRONMENT_WIDTH - 100);
-                hY = SwarmUtilities.random(100, Environment.ENVIRONMENT_HEIGHT - 100);
-            } while (env.isWallAt(hX, hY));
+                hiveX = SwarmUtilities.random(100, Environment.ENVIRONMENT_WIDTH - 100);
+                hiveY = SwarmUtilities.random(100, Environment.ENVIRONMENT_HEIGHT - 100);
+            } while (env.isWallAt(hiveX, hiveY));
         }
         spawn();
     }
@@ -93,7 +90,7 @@ public class Swarm {
             int bugCount = 0;
             for (BugConfiguration bugConfiguration : this.config) {
                 for (int ii = 0; ii < bugConfiguration.getSize(); ii++) {
-                    Bug bug = new Bug(this, hX, hY, color, bugCount);
+                    Bug bug = new Bug(this, hiveX, hiveY, color, bugCount);
                     bug.setAngle(SwarmUtilities.randomAngle());
                     bug.setSpeed(1);
                     bugConfiguration.configure(bug);
@@ -122,17 +119,17 @@ public class Swarm {
         this.swarmModel.updateLocation(x, y, 2);
     }
 
-    public void emitPheromone(int x, int y, int val, int channel) {
+    public void emitPheromone(int x, int y, int val, PheromoneChannel channel) {
         this.swarmModel.emitPheromone(x, y, val, channel);
     }
 
-    public int getPheromoneChannel() {
+    public PheromoneChannel getPheromoneChannel() {
         if (this.swarmID == Environment.ENV_SWARM_A) {
-            return Pheromone.CHANNEL_HIVE_A;
+            return PheromoneChannel.HIVE_A;
         } else if (this.swarmID == Environment.ENV_SWARM_B) {
-            return Pheromone.CHANNEL_HIVE_B;
+            return PheromoneChannel.HIVE_B;
         }
-        return -1;
+        return null;
     }
     
     public void paint(Graphics g) {
@@ -140,7 +137,7 @@ public class Swarm {
         Graphics2D g2 = (Graphics2D)g;
         g2.setStroke(new BasicStroke(3));
         g2.setColor(color);
-        g2.drawOval(hX - r, hY - r, 2 * r, 2 * r);
+        g2.drawOval(hiveX - r, hiveY - r, 2 * r, 2 * r);
         for (Bug bug : this.bugs) {
             bug.paint(g);
         }

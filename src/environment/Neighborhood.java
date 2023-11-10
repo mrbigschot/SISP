@@ -1,5 +1,7 @@
 package environment;
 
+import pheromone.PheromoneChannel;
+
 public class Neighborhood {
 
     private int[][] sight;
@@ -22,7 +24,7 @@ public class Neighborhood {
     public int see(int x, int y) { return this.sight[x][y]; }
 
     public void setSmell(int[][][] s) { this.smell = s; }
-    public int smell(int channel, int x, int y) { return this.smell[channel][x][y]; }
+    public int smell(PheromoneChannel channel, int x, int y) { return this.smell[channel.ordinal()][x][y]; }
 
     public int[] getCenter() {
         int[] result = new int[2];

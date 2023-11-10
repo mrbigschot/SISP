@@ -1,7 +1,7 @@
-package environment;
+package pheromone;
 
 // Swarm imports
-import swarmintelligence.Globals;
+import environment.Environment;
 
 public class PheromoneLayer {
 
@@ -35,7 +35,7 @@ public class PheromoneLayer {
             for (int ii = 2; ii < this.width - 2; ii++) {
                 for (int jj = 2; jj < this.height - 2; jj++) {
                     if (this.hasPheromoneAt(ii, jj)) {
-                        int n = (int)(getPheromoneLevelAt(ii, jj) * Globals.DECAY_RATE);
+                        int n = (int)(getPheromoneLevelAt(ii, jj) * IPheromone.DECAY_RATE);
                         addPheromone(ii, jj, n, newPheromones, environment);
                         addPheromone(ii - 1, jj, n, newPheromones, environment);
                         addPheromone(ii + 1, jj, n, newPheromones, environment);
@@ -51,7 +51,7 @@ public class PheromoneLayer {
     }
 
     private static void addPheromone(int x, int y, int value, int[][] pheromones, Environment environment) {
-        if (!environment.isWallAt(x, y)) pheromones[x][y] = Math.min(pheromones[x][y] + value, Globals.MAX_SMELL);
+        if (!environment.isWallAt(x, y)) pheromones[x][y] = Math.min(pheromones[x][y] + value, IPheromone.MAX_VALUE);
     }
 
 }

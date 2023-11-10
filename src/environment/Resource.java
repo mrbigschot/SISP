@@ -5,39 +5,35 @@ import java.awt.Color;
 import java.awt.Graphics;
 
 // Swarm imports
-import swarmintelligence.*;
+import pheromone.IPheromone;
+import pheromone.PheromoneChannel;
+import swarmintelligence.SwarmModel;
+import swarmintelligence.SwarmUtilities;
+import swarmintelligence.SIObject;
+import swarmintelligence.Grabbable;
 
-public class Resource extends SIObject implements Grabbable {
+public class Resource extends SIObject implements IResource, Grabbable {
 
-    int mass;
-    double fX, fY;
-    SwarmModel theModel;
+    private int mass;
+    private double fX, fY;
+    private final SwarmModel swarmModel;
 
     public Resource(SwarmModel model) {
-        theModel = model;
-        mass = Globals.MASS;
-        this.x = SwarmUtilities.random(10, IEnvironment.ENVIRONMENT_WIDTH - 10);
-        this.y = SwarmUtilities.random(10, IEnvironment.ENVIRONMENT_HEIGHT - 10);
-        setOriginalX(x);
-        setOriginalY(y);
+        this(model, SwarmUtilities.random(10, IEnvironment.ENVIRONMENT_WIDTH - 10), SwarmUtilities.random(10, IEnvironment.ENVIRONMENT_HEIGHT - 10));
     }
-
     public Resource(SwarmModel model, int x, int y) {
-        this(model);
-        this.x = x;
-        this.y = y;
-        setOriginalX(x);
-        setOriginalY(y);
+        this.swarmModel = model;
+        this.mass = MAX_MASS;
+        setPosition(x, y);
+        setOrigin(x, y);
     }
 
     public void reset(boolean lockPosition) {
-        mass = Globals.MASS;
-        if (!lockPosition) {
-            this.x = SwarmUtilities.random(10, IEnvironment.ENVIRONMENT_WIDTH - 10);
-            this.y = SwarmUtilities.random(10, IEnvironment.ENVIRONMENT_HEIGHT - 10);
+        this.mass = MAX_MASS;
+        if (lockPosition) {
+            super.setPosition(getOriginalX(), getOriginalY());
         } else {
-            this.x = getOriginalX();
-            this.y = getOriginalY();
+            super.setPosition(SwarmUtilities.random(10, IEnvironment.ENVIRONMENT_WIDTH - 10), SwarmUtilities.random(10, IEnvironment.ENVIRONMENT_HEIGHT - 10));
         }
     }
 
@@ -55,19 +51,17 @@ public class Resource extends SIObject implements Grabbable {
     }
 
     public double getDepletion() {
-        return ((double)mass) / Globals.MASS;
+        return ((double)this.mass) / MAX_MASS;
     }
-    
     public boolean isDepleted() {
-        return mass == 0;
+        return this.mass == 0;
     }
-
     public int gather() {
-        if (!isDepleted()) {
-            mass--;
-            return 1;
-        }
-        return 0;
+        if (isDepleted()) return 0;
+
+        int gatheredMass = 1;
+        this.mass -= gatheredMass;
+        return gatheredMass;
     }
 
     @Override
@@ -78,11 +72,11 @@ public class Resource extends SIObject implements Grabbable {
 
     @Override
     public void step() {
-        x += fX;
-        y += fY;
+        super.x += fX;
+        super.y += fY;
         fX = 0;
         fY = 0;
-        theModel.emitPheromone((int)x, (int)y, (int)(getDepletion() * Globals.MAX_SMELL), Pheromone.CHANNEL_RESOURCE_A);
+        this.swarmModel.emitPheromone((int)super.x, (int)super.y, (int)(getDepletion() * IPheromone.MAX_VALUE), PheromoneChannel.RESOURCE_A);
     }
 
     @Override

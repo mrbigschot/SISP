@@ -39,8 +39,8 @@ public class SIPanel extends javax.swing.JPanel implements Viewable {
     public void paintComponent(Graphics g){
        theModel.paint(g);
        int[] totals = theModel.getTotals();
-       blueProgress.setValue(progress(totals[0], Globals.totalMass()));
-       redProgress.setValue(progress(totals[1], Globals.totalMass()));
+       blueProgress.setValue(progress(totals[0], theModel.getTotalResourceMassAvailable()));
+       redProgress.setValue(progress(totals[1], theModel.getTotalResourceMassAvailable()));
     }
     
     public int progress(int n, int d) {

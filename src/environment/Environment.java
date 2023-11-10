@@ -5,12 +5,18 @@ import java.awt.Color;
 import java.awt.Graphics;
 
 // Swarm imports
+import bugs.Bug;
 import bugs.Swarm;
+import pheromone.Pheromone;
+import pheromone.PheromoneChannel;
+import pheromone.PheromoneLayer;
 import swarmintelligence.Globals;
 import swarmintelligence.SwarmModel;
 import swarmintelligence.SwarmUtilities;
 
 public class Environment implements IEnvironment {
+
+    private final EnvironmentSettings settings;
 
     private int[][] grid;
     private WallLayer walls;
@@ -23,25 +29,28 @@ public class Environment implements IEnvironment {
     public Environment(SwarmModel m) {
         this.swarmModel = m;
         this.grid = new int[ENVIRONMENT_WIDTH][ENVIRONMENT_HEIGHT]; // (x, y)
+        this.settings = new EnvironmentSettings();
         initPheromoneLayers();
         initWalls();
         initResources();
     }
 
+    public EnvironmentSettings getSettings() { return this.settings; }
+
     private void initPheromoneLayers() {
-        this.pheromoneChannels = new PheromoneLayer[Globals.NUM_CHANNELS];
-        for (int ii = 0; ii < Globals.NUM_CHANNELS; ii++) {
-            this.pheromoneChannels[ii] = new PheromoneLayer(ENVIRONMENT_WIDTH, ENVIRONMENT_HEIGHT);
+        this.pheromoneChannels = new PheromoneLayer[PheromoneChannel.getSize()];
+        for (PheromoneChannel channel : PheromoneChannel.values()) {
+            this.pheromoneChannels[channel.ordinal()] = new PheromoneLayer(ENVIRONMENT_WIDTH, ENVIRONMENT_HEIGHT);
         }
     }
 
     private void initWalls() {
-        this.walls = new WallLayer(ENVIRONMENT_WIDTH, ENVIRONMENT_HEIGHT, Globals.NUM_WALLS);
+        this.walls = new WallLayer(ENVIRONMENT_WIDTH, ENVIRONMENT_HEIGHT, this.settings.getWallCount());
     }
 
     private void initResources() {
         this.resources = new Resources();
-        for (int ii = 0; ii < Globals.NUM_GOALS; ii++) {
+        for (int ii = 0; ii < this.settings.getResourceCount(); ii++) {
             Resource resourceToAdd = createResource();
             if (resourceToAdd != null) this.resources.add(resourceToAdd);
         }
@@ -68,8 +77,12 @@ public class Environment implements IEnvironment {
         Resource resourceToAdd = createResourceAt(x, y);
         if (resourceToAdd != null) {
             this.resources.add(resourceToAdd);
-            Globals.NUM_GOALS++;
+            this.settings.setResourceCount(this.settings.getResourceCount() + 1);
         }
+    }
+
+    public int totalResourceMassAvailable() {
+        return this.resources.size() * IResource.MAX_MASS;
     }
 
     public void setSwarms(Swarm a, Swarm b) {
@@ -81,9 +94,8 @@ public class Environment implements IEnvironment {
         return this.walls.isWallAt(x, y);
     }
 
-    public int getPheromoneLevelAt(int channel, int x, int y) {
-        return this.pheromoneChannels[channel].getPheromoneLevelAt(x, y);
-    }
+    public PheromoneLayer getPheromoneLayer(PheromoneChannel channel) { return this.pheromoneChannels[channel.ordinal()]; }
+    public int getPheromoneLevelAt(PheromoneChannel channel, int x, int y) { return getPheromoneLayer(channel).getPheromoneLevelAt(x, y); }
 
     public Resource findResourceWithin(int xMin, int xMax, int yMin, int yMax) {
         for (Resource resource : resources) {
@@ -101,7 +113,7 @@ public class Environment implements IEnvironment {
     public Neighborhood getNeighborhood(int swarmID, double dx, double dy) {
         int ix = (int)dx; // cast dx to int for calculation
         int iy = (int)dy; // cast dy to int for calculation
-        int n = Globals.BUG_SIGHT;
+        int n = Bug.SIGHT_RANGE;
         int xMin = Math.max(ix - n, 0);
         int xMax = Math.min(ix + n, ENVIRONMENT_WIDTH);
         int yMin = Math.max(iy - n, 0);
@@ -111,7 +123,7 @@ public class Environment implements IEnvironment {
 
         Neighborhood result = new Neighborhood(centerX, centerY);
         int[][] nSight = new int[xMax - xMin][yMax - yMin];
-        int[][][] nSmell = new int[Globals.NUM_CHANNELS][xMax - xMin][yMax - yMin];
+        int[][][] nSmell = new int[PheromoneChannel.getSize()][xMax - xMin][yMax - yMin];
         for (int ii = xMin; ii < xMax; ii++) {
             for (int jj = yMin; jj < yMax; jj++) {
                 if (isWallAt(ii, jj)) {
@@ -119,8 +131,8 @@ public class Environment implements IEnvironment {
                 } else if (grid[ii][jj] != ENV_EMPTY) {
                     nSight[ii - xMin][jj - yMin] = grid[ii][jj];
                 }
-                for (int kk = 0; kk < Globals.NUM_CHANNELS; kk++) {
-                    nSmell[kk][ii - xMin][jj - yMin] = getPheromoneLevelAt(kk, ii, jj);
+                for (PheromoneChannel channel : PheromoneChannel.values()) {
+                    nSmell[channel.ordinal()][ii - xMin][jj - yMin] = getPheromoneLevelAt(channel, ii, jj);
                 }
             }
         }
@@ -135,9 +147,9 @@ public class Environment implements IEnvironment {
 
         Resource foundResource = findResourceWithin(xMin, xMax, yMin, yMax);
         if (foundResource != null) {
-            int rsrcX = (int)foundResource.getX() - xMin;
-            int rsrcY = (int)foundResource.getY() - yMin;
-            nSight[rsrcX][rsrcY] = ENV_RESOURCE; // resource overwrites everything
+            int resourceX = (int)foundResource.getX() - xMin;
+            int resourceY = (int)foundResource.getY() - yMin;
+            nSight[resourceX][resourceY] = ENV_RESOURCE; // resource overwrites everything
             result.setResource(foundResource);
         }
         result.setSight(nSight);
@@ -147,17 +159,18 @@ public class Environment implements IEnvironment {
 
     public void setValue(int x, int y, int value) { this.grid[x][y] = value; }
 
-    public void emitPheromone(int x, int y, int value, int channel) {
-        this.pheromoneChannels[channel].emitPheromone(x, y, value);
+    public void emitPheromone(int x, int y, int value, PheromoneChannel channel) {
+        getPheromoneLayer(channel).emitPheromone(x, y, value);
     }
 
     public void dilute() {
-        dilute(Pheromone.CHANNEL_RESOURCE_A, Globals.PHER_1_PERSISTENCE);
-        dilute(Pheromone.CHANNEL_HIVE_A, Globals.PHER_2_PERSISTENCE);
-        dilute(Pheromone.CHANNEL_HIVE_B, Globals.PHER_3_PERSISTENCE);
+        dilute(PheromoneChannel.RESOURCE_A);
+        dilute(PheromoneChannel.HIVE_A);
+        dilute(PheromoneChannel.HIVE_B);
     }
-    public void dilute(int channel, int persistence) {
-        this.pheromoneChannels[channel].dilute(this, persistence);
+    public void dilute(PheromoneChannel channel) {
+        int persistence = this.settings.getPheromonePersistence(channel);
+        getPheromoneLayer(channel).dilute(this, persistence);
     }
     public void clean() {
         this.grid = new int[ENVIRONMENT_WIDTH][ENVIRONMENT_HEIGHT]; // (x, y)
@@ -185,7 +198,7 @@ public class Environment implements IEnvironment {
 
     public void restart(boolean lockResources, boolean lockWalls) {
         if (lockResources) {
-            for (Resource rsrc : resources) { rsrc.reset(lockResources); }
+            for (Resource resource : resources) { resource.reset(lockResources); }
         } else {
             initResources();
         }
@@ -195,11 +208,11 @@ public class Environment implements IEnvironment {
     
     public void paint(Graphics g) {
         if (Globals.PHEREMODE1) {
-            paintPheromoneChannel(Pheromone.CHANNEL_RESOURCE_A, g);
+            paintPheromoneChannel(PheromoneChannel.RESOURCE_A, g);
         } else if (Globals.PHEREMODE2) {
-            paintPheromoneChannel(Pheromone.CHANNEL_HIVE_A, g);
+            paintPheromoneChannel(PheromoneChannel.HIVE_A, g);
         } else if (Globals.PHEREMODE3) {
-            paintPheromoneChannel(Pheromone.CHANNEL_HIVE_B, g);
+            paintPheromoneChannel(PheromoneChannel.HIVE_B, g);
         } else {
             g.setColor(Color.BLACK);
             for (int x = 0; x < ENVIRONMENT_WIDTH; x++) {
@@ -213,10 +226,10 @@ public class Environment implements IEnvironment {
         }
     }
 
-    private void paintPheromoneChannel(int channel, Graphics graphics) {
+    private void paintPheromoneChannel(PheromoneChannel channel, Graphics graphics) {
         for (int x = 0; x < ENVIRONMENT_WIDTH; x++) {
             for (int y = 0; y < ENVIRONMENT_HEIGHT; y++) {
-                if (pheromoneChannels[channel].hasPheromoneAt(x, y)) {
+                if (getPheromoneLayer(channel).hasPheromoneAt(x, y)) {
                     graphics.setColor(Pheromone.getColor(channel, getPheromoneLevelAt(channel, x, y)));
                     graphics.fillRect(x, y, 1, 1);
                 } else {

@@ -1,6 +1,7 @@
 package gui;
 
 import mvc.Controller;
+import pheromone.PheromoneChannel;
 import swarmintelligence.Globals;
 import swarmintelligence.SwarmModel;
 import bugs.BugConfiguration;
@@ -12,13 +13,12 @@ import javax.swing.DefaultListModel;
 public class ControlsFrame extends javax.swing.JFrame {
 
     private SIFrame theFrame;
-    private SwarmModel theModel;
+    private SwarmModel swarmModel;
     private Controller theController;
     private boolean lockHives, lockResources, lockWalls;
     private SwarmConfiguration swarmConfig;
     private DefaultListModel<BugConfiguration> configs;
     private BugConfiguration currentConfig;
-
 
     public ControlsFrame() {
         initComponents();
@@ -30,21 +30,21 @@ public class ControlsFrame extends javax.swing.JFrame {
     public ControlsFrame(SIFrame f, SwarmModel m, Controller c) {
         this();
         theFrame = f;
-        theModel = m;
+        swarmModel = m;
         theController = c;
         init();
     }
 
     private void init() {
-        swarmConfig = theModel.getSwarmA().getConfiguration();
+        swarmConfig = swarmModel.getSwarmA().getConfiguration();
         configs = new DefaultListModel<>();
         for (BugConfiguration bugConfig : swarmConfig) {
             configs.addElement(bugConfig);
         }
         configList.setModel(configs);
-        ph1Slider.setValue(Globals.PHER_1_PERSISTENCE);
-        ph2Slider.setValue(Globals.PHER_2_PERSISTENCE);
-        ph3Slider.setValue(Globals.PHER_3_PERSISTENCE);
+        ph1Slider.setValue(swarmModel.getEnvironment().getSettings().getPheromonePersistence(PheromoneChannel.RESOURCE_A));
+        ph2Slider.setValue(swarmModel.getEnvironment().getSettings().getPheromonePersistence(PheromoneChannel.HIVE_A));
+        ph3Slider.setValue(swarmModel.getEnvironment().getSettings().getPheromonePersistence(PheromoneChannel.HIVE_B));
 
     }
 
@@ -55,16 +55,26 @@ public class ControlsFrame extends javax.swing.JFrame {
         } catch (InterruptedException ex) {
 
         }
-        theModel.restart();
+        swarmModel.restart();
         theFrame.repaint();
         runButton.setSelected(theController.getRunning());
     }
 
     private void reset() {
         theController.restart();
-        theModel.reset(lockHives, lockResources, lockWalls);
+        swarmModel.reset(lockHives, lockResources, lockWalls);
         theFrame.repaint();
         runButton.setSelected(theController.getRunning());
+    }
+
+    private void setPheromonePersistence(PheromoneChannel channel, int value) {
+        swarmModel.getEnvironment().getSettings().setPheromonePersistence(channel, value);
+    }
+    private void setResourceCount(int value) {
+        swarmModel.getEnvironment().getSettings().setResourceCount(value);
+    }
+    private void setWallCount(int value) {
+        swarmModel.getEnvironment().getSettings().setWallCount(value);
     }
 
     @SuppressWarnings("unchecked")
@@ -857,18 +867,18 @@ public class ControlsFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_sizeSliderStateChanged
 
     private void goalSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_goalSliderStateChanged
-        Globals.NUM_GOALS = goalSlider.getValue();
+        setResourceCount(goalSlider.getValue());
         reset();
     }//GEN-LAST:event_goalSliderStateChanged
 
     private void wallSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_wallSliderStateChanged
-        Globals.NUM_WALLS = wallSlider.getValue();
+        setWallCount(wallSlider.getValue());
         reset();
     }//GEN-LAST:event_wallSliderStateChanged
 
     private void setButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setButtonActionPerformed
         swarmConfig = new SwarmConfiguration(configs.elements());
-        theModel.getSwarmA().configure(swarmConfig);
+        swarmModel.getSwarmA().configure(swarmConfig);
         restart();
     }//GEN-LAST:event_setButtonActionPerformed
 
@@ -952,26 +962,26 @@ public class ControlsFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_pher3ToggleStateChanged
 
     private void ph1SliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_ph1SliderStateChanged
-        Globals.PHER_1_PERSISTENCE = ph1Slider.getValue();
+        setPheromonePersistence(PheromoneChannel.RESOURCE_A, ph1Slider.getValue());
         reset();
     }//GEN-LAST:event_ph1SliderStateChanged
 
     private void ph2SliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_ph2SliderStateChanged
-        Globals.PHER_2_PERSISTENCE = ph2Slider.getValue();
+        setPheromonePersistence(PheromoneChannel.HIVE_A, ph2Slider.getValue());
         reset();
     }//GEN-LAST:event_ph2SliderStateChanged
 
     private void ph3SliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_ph3SliderStateChanged
-        Globals.PHER_3_PERSISTENCE = ph3Slider.getValue();
+        setPheromonePersistence(PheromoneChannel.HIVE_B, ph3Slider.getValue());
         reset();
     }//GEN-LAST:event_ph3SliderStateChanged
 
     private void ph1CheckActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ph1CheckActionPerformed
         if (ph1Check.isSelected()) {
             ph1Slider.setEnabled(true);
-            Globals.PHER_1_PERSISTENCE = ph1Slider.getValue();
+            setPheromonePersistence(PheromoneChannel.RESOURCE_A, ph1Slider.getValue());
         } else {
-            Globals.PHER_1_PERSISTENCE = 0;
+            setPheromonePersistence(PheromoneChannel.RESOURCE_A, 0);
             ph1Slider.setEnabled(false);
         }
         reset();
@@ -980,9 +990,9 @@ public class ControlsFrame extends javax.swing.JFrame {
     private void ph2CheckActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ph2CheckActionPerformed
         if (ph2Check.isSelected()) {
             ph2Slider.setEnabled(true);
-            Globals.PHER_2_PERSISTENCE = ph2Slider.getValue();
+            setPheromonePersistence(PheromoneChannel.HIVE_A, ph2Slider.getValue());
         } else {
-            Globals.PHER_2_PERSISTENCE = 0;
+            setPheromonePersistence(PheromoneChannel.HIVE_A, 0);
             ph2Slider.setEnabled(false);
         }
         reset();
@@ -991,9 +1001,9 @@ public class ControlsFrame extends javax.swing.JFrame {
     private void ph3CheckActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ph3CheckActionPerformed
         if (ph3Check.isSelected()) {
             ph3Slider.setEnabled(true);
-            Globals.PHER_3_PERSISTENCE = ph3Slider.getValue();
+            setPheromonePersistence(PheromoneChannel.HIVE_B, ph3Slider.getValue());
         } else {
-            Globals.PHER_3_PERSISTENCE = 0;
+            setPheromonePersistence(PheromoneChannel.HIVE_B, 0);
             ph3Slider.setEnabled(false);
         }
         reset();
@@ -1001,12 +1011,12 @@ public class ControlsFrame extends javax.swing.JFrame {
 
     private void manualResourcesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_manualResourcesActionPerformed
         if (manualResources.isSelected()) {
-            Globals.NUM_GOALS = 0;
+            setResourceCount(0);
             Globals.MANUAL_RESOURCES = true;
             goalSlider.setEnabled(false);
         } else {
             goalSlider.setEnabled(true);
-            Globals.NUM_GOALS = goalSlider.getValue();
+            setResourceCount(goalSlider.getValue());
             Globals.MANUAL_RESOURCES = false;
         }
         reset();

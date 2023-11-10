@@ -1,18 +1,15 @@
-/*
- Copyright © 2018 by Paul K. Schot
- All rights reserved.
- */
 package bugs;
 
-import io.MyReader;
+// Java imports
 import java.util.ArrayList;
 import java.util.Enumeration;
 
+// Swarm imports
+import io.MyReader;
+
 public class SwarmConfiguration extends ArrayList<BugConfiguration> {
 
-    public SwarmConfiguration() {
-        
-    }
+    public SwarmConfiguration() { }
     
     public SwarmConfiguration(String filename) {
         MyReader mr = new MyReader(filename);

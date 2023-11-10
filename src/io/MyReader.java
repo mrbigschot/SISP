@@ -1,6 +1,3 @@
-/*
- MyReader class written by Jim Levenick
- */
 package io;
 
 import java.io.*;
@@ -9,19 +6,17 @@ import java.awt.*;
 public class MyReader {
 
     private BufferedReader br;
-    String path;
+    private String path;
 
-    public String getPath() {
-        return path;
-    }
 
     public MyReader() {
         openIt(getFileName());
     }
-
     public MyReader(String filename) {
         openIt(filename);
     }
+
+    public String getPath() { return path; }
 
     public String giveMeTheNextLine() {
         try {
@@ -41,21 +36,19 @@ public class MyReader {
         return false;
     }
 
-    public void close() {
+    private void openIt(String filename) {
         try {
-            if (br != null) {
-                br.close();
-            }
+            this.br = new BufferedReader(new FileReader(filename));
         } catch (Exception e) {
-            System.out.println("MyReader:can't close!" + e);
+            System.out.println("MyReader -- can't open " + filename + "!" + e);
         }
     }
 
-    private void openIt(String filename) {
+    public void close() {
         try {
-            br = new BufferedReader(new FileReader(filename));
+            if (this.br != null) this.br.close();
         } catch (Exception e) {
-            System.out.println("MyReader -- can't open " + filename + "!" + e);
+            System.out.println("MyReader:can't close!" + e);
         }
     }
 
@@ -63,8 +56,7 @@ public class MyReader {
         FileDialog fd = new FileDialog(new Frame(), "Select Input File");
         fd.setFile("input");
         fd.setVisible(true);
-        path = fd.getDirectory() + fd.getFile();
-        return path;  // return the complete path
-
+        this.path = fd.getDirectory() + fd.getFile();
+        return this.path; // return the complete path
     }
 }
