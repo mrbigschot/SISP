@@ -2,13 +2,13 @@ package swarmintelligence;
 
 public class SwarmUtilities {
 
-    public static int random(int min, int max) {
+    public static int randomBetween(int min, int max) {
         double d = Math.random();
         double range = (max - min) * d;
         return (int) (range + min);
     }
 
-    public static double random(double min, double max) {
+    public static double randomBetween(double min, double max) {
         double d = Math.random();
         double range = (max - min) * d;
         return range + min;
@@ -23,7 +23,7 @@ public class SwarmUtilities {
     }
 
     public static double randomAngle() {
-        return random(0, 2 * Math.PI);
+        return randomBetween(0, 2 * Math.PI);
     }
 
 }

@@ -22,6 +22,7 @@ public class Swarm implements ISwarm {
     private SwarmConfiguration config;
     private final Bugs bugs;
     private int resourceTotal;
+    private boolean controlMode = false;
 
     public Swarm(SwarmModel m, int id) {
         this.swarmModel = m;
@@ -66,14 +67,16 @@ public class Swarm implements ISwarm {
     public int getSwarmID() {
         return this.swarmID;
     }
-    
+
+    public void setControlMode(boolean value) { this.controlMode = value; }
+
     public void init(Environment env, boolean lockPosition) {
         this.resourceTotal = 0;
         this.bugs.clear();
         if (!lockPosition) {
             do {
-                hiveX = SwarmUtilities.random(100, Environment.ENVIRONMENT_WIDTH - 100);
-                hiveY = SwarmUtilities.random(100, Environment.ENVIRONMENT_HEIGHT - 100);
+                hiveX = SwarmUtilities.randomBetween(100, Environment.ENVIRONMENT_WIDTH - 100);
+                hiveY = SwarmUtilities.randomBetween(100, Environment.ENVIRONMENT_HEIGHT - 100);
             } while (env.isWallAt(hiveX, hiveY));
         }
         spawn();
@@ -90,7 +93,7 @@ public class Swarm implements ISwarm {
             int bugCount = 0;
             for (BugConfiguration bugConfiguration : this.config) {
                 for (int ii = 0; ii < bugConfiguration.getSize(); ii++) {
-                    Bug bug = new Bug(this, hiveX, hiveY, color, bugCount);
+                    Bug bug = new Bug(this, hiveX, hiveY, color, bugCount, this.controlMode);
                     bug.setAngle(SwarmUtilities.randomAngle());
                     bug.setSpeed(1);
                     bugConfiguration.configure(bug);

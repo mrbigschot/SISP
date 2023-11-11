@@ -19,7 +19,7 @@ public class Resource extends SIObject implements IResource, Grabbable {
     private final SwarmModel swarmModel;
 
     public Resource(SwarmModel model) {
-        this(model, SwarmUtilities.random(10, IEnvironment.ENVIRONMENT_WIDTH - 10), SwarmUtilities.random(10, IEnvironment.ENVIRONMENT_HEIGHT - 10));
+        this(model, SwarmUtilities.randomBetween(10, IEnvironment.ENVIRONMENT_WIDTH - 10), SwarmUtilities.randomBetween(10, IEnvironment.ENVIRONMENT_HEIGHT - 10));
     }
     public Resource(SwarmModel model, int x, int y) {
         this.swarmModel = model;
@@ -33,7 +33,7 @@ public class Resource extends SIObject implements IResource, Grabbable {
         if (lockPosition) {
             super.setPosition(getOriginalX(), getOriginalY());
         } else {
-            super.setPosition(SwarmUtilities.random(10, IEnvironment.ENVIRONMENT_WIDTH - 10), SwarmUtilities.random(10, IEnvironment.ENVIRONMENT_HEIGHT - 10));
+            super.setPosition(SwarmUtilities.randomBetween(10, IEnvironment.ENVIRONMENT_WIDTH - 10), SwarmUtilities.randomBetween(10, IEnvironment.ENVIRONMENT_HEIGHT - 10));
         }
     }
 
@@ -45,8 +45,8 @@ public class Resource extends SIObject implements IResource, Grabbable {
             g.setColor(new Color(0, 150, 0));
         }
         int rad = (int)(getDepletion() * 10);
-        int drawX = (int)x - rad;
-        int drawY = (int)y - rad;
+        int drawX = getIntX() - rad;
+        int drawY = getIntY() - rad;
         g.fillOval(drawX, drawY, 2 * rad, 2 * rad);
     }
 
@@ -76,7 +76,7 @@ public class Resource extends SIObject implements IResource, Grabbable {
         super.y += fY;
         fX = 0;
         fY = 0;
-        this.swarmModel.emitPheromone((int)super.x, (int)super.y, (int)(getDepletion() * IPheromone.MAX_VALUE), PheromoneChannel.RESOURCE_A);
+        this.swarmModel.emitPheromone(getIntX(), getIntY(), (int)(getDepletion() * IPheromone.MAX_VALUE), PheromoneChannel.RESOURCE_A);
     }
 
     @Override

@@ -38,9 +38,9 @@ public class WallLayer {
 
     private void initInnerWalls() {
         for (int ii = 0; ii < this.density; ii++) {
-            int x = SwarmUtilities.random(this.padding, this.width - this.padding);
-            int y = SwarmUtilities.random(this.padding, this.height - this.padding);
-            int l = SwarmUtilities.random(25, 200);
+            int x = SwarmUtilities.randomBetween(this.padding, this.width - this.padding);
+            int y = SwarmUtilities.randomBetween(this.padding, this.height - this.padding);
+            int l = SwarmUtilities.randomBetween(25, 200);
             int max;
             if (SwarmUtilities.coinFlip(.5)) { // horizontal
                 max = Math.min(x + l, this.width);

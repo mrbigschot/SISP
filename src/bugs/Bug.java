@@ -7,7 +7,6 @@ import java.awt.Graphics;
 // Swarm imports
 import environment.Environment;
 import pheromone.PheromoneChannel;
-import swarmintelligence.Globals;
 import swarmintelligence.Grabbable;
 import environment.IEnvironment;
 import environment.Neighborhood;
@@ -21,7 +20,8 @@ public class Bug extends SIObject implements IBug {
     private Color color;
     private PheromoneChannel channelHive = PheromoneChannel.HIVE_A;
     private PheromoneChannel channelResource = PheromoneChannel.RESOURCE_A;
-    
+    private boolean controlMode = false;
+
     private double wAvoid = 0.0;
     private double wCondense = 0.0;
     private double wMatch = 0.0;
@@ -57,11 +57,11 @@ public class Bug extends SIObject implements IBug {
     public Bug() {
         this.pheromoneMemory = new int[PheromoneChannel.getSize()][3];
         this.pheromoneOut = new int[PheromoneChannel.getSize()];
-        this.smellThreshold = SwarmUtilities.random(50, 250);
-        this.adventurous = SwarmUtilities.random(50, Pheromone.MAX_VALUE);
+        this.smellThreshold = SwarmUtilities.randomBetween(50, 250);
+        this.adventurous = SwarmUtilities.randomBetween(50, Pheromone.MAX_VALUE);
     }
 
-    public Bug(Swarm s, double x, double y, Color c, int b) {
+    public Bug(Swarm s, double x, double y, Color c, int b, boolean controlMode) {
         this();
         this.activeDelay = b;
         this.swarm = s;
@@ -77,6 +77,7 @@ public class Bug extends SIObject implements IBug {
             channelHive = PheromoneChannel.HIVE_B;
             channelResource = PheromoneChannel.RESOURCE_B;
         }
+        this.controlMode = controlMode;
     }
 
     public boolean isSeekingResource() {
@@ -157,7 +158,7 @@ public class Bug extends SIObject implements IBug {
         if (speed < 1) {
             addSpeed += .1;
         }
-        if (!Globals.CONTROL) {
+        if (!this.controlMode) {
             avoidCollision();
             matchVel();
             condense();
@@ -215,7 +216,7 @@ public class Bug extends SIObject implements IBug {
     }
     
     private boolean hasSmelled(PheromoneChannel channel) {
-        if (Globals.CONTROL) return false;
+        if (this.controlMode) return false;
 
         for (int ii = 0; ii < pheromoneMemory[channel.ordinal()].length; ii++) {
             if (pheromoneMemory[channel.ordinal()][ii] > smellThreshold) {

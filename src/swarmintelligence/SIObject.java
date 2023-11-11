@@ -6,7 +6,7 @@ import java.awt.Graphics;
 public abstract class SIObject {
     
     protected double x, y;
-    private double originalX, originalY;
+    protected double originalX, originalY;
     
     public abstract void paint(Graphics g);
 
@@ -23,12 +23,12 @@ public abstract class SIObject {
     public final int getIntX() { return (int)this.x; }
     public final int getIntY() { return (int)this.y; }
 
-    public final double getOriginalX() { return this.originalX; }
-    public final double getOriginalY() { return this.originalY; }
     public final void setOrigin(double x, double y) {
         this.originalX = x;
         this.originalY = y;
     }
+    public final double getOriginalX() { return this.originalX; }
+    public final double getOriginalY() { return this.originalY; }
     
     public abstract void step();
 }

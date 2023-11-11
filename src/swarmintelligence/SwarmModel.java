@@ -10,11 +10,16 @@ import bugs.Swarm;
 import bugs.SwarmConfiguration;
 import mvc.Modelable;
 import pheromone.PheromoneChannel;
+import gui.ViewMode;
 
 public class SwarmModel implements Modelable {
 
     private final Environment environment;
     private final Swarm swarmA, swarmB;
+    private boolean controlMode = false;
+    private boolean contestMode = false;
+    private ViewMode viewMode = ViewMode.NORMAL;
+    private boolean manualResourcePlacement = false;
 
     public SwarmModel() {
         this.environment = new Environment(this);
@@ -24,46 +29,55 @@ public class SwarmModel implements Modelable {
         this.swarmB.configure(new SwarmConfiguration("data"));
         initialize(false);
     }
-    
+
+    // Accessors
+    public Environment getEnvironment() { return this.environment; }
+    public Neighborhood getNeighborhood(int id, double x, double y) { return this.environment.getNeighborhood(id, x, y); }
+    public Swarm getSwarmA() { return this.swarmA; }
+    public Swarm getSwarmB() { return this.swarmB; }
+    public boolean isControlMode() { return this.controlMode; }
+    public void setControlMode(boolean value) { this.controlMode = value; }
+    public void toggleControlMode() { this.controlMode = !this.controlMode; }
+    public boolean isContestMode() { return this.contestMode; }
+    public void setContestMode(boolean value) { this.contestMode = value; }
+    public void toggleContestMode() { this.contestMode = !this.contestMode; }
+    public void setViewMode(ViewMode value) { this.viewMode = value; }
+    public void setManualResourcePlacement(boolean value) { this.manualResourcePlacement = value; }
+    public boolean isManualResourcePlacement() { return this.manualResourcePlacement; }
+
     private void initialize(boolean lockHives) {
         this.swarmA.init(this.environment, lockHives);
         this.swarmB.init(this.environment, lockHives);
-        if (Globals.CONTEST) {
+        if (this.isContestMode()) {
             this.environment.setSwarms(this.swarmA, this.swarmB);
         } else {
             this.environment.setSwarms(this.swarmA, null);
         }
     }
 
-    public Environment getEnvironment() { return this.environment; }
-
-    public Swarm getSwarmA() { return this.swarmA; }
-    public Swarm getSwarmB() { return this.swarmB; }
-
     // restart the simulation while keeping all variables unchanged
     public void restart() {
-        if (this.swarmA != null) this.swarmA.reset();
-        if (this.swarmB != null) this.swarmB.reset();
+        resetSwarm(this.swarmA);
+        resetSwarm(this.swarmB);
         this.environment.restart(true, true);
         initialize(true);
     }
 
     // restart the simulation, changing appropriate variables
     public void reset(boolean lockHives, boolean lockResources, boolean lockWalls) {
-//        synchronized (swarmA) {
-//            swarmA.reset();
-//            if (Globals.CONTEST) {
-//                synchronized (swarmB) {
-//                    swarmB.reset();
-//                }
-//            }
-//        }
-        if (this.swarmA != null) this.swarmA.reset();
-        if (this.swarmB != null) this.swarmB.reset();
+        resetSwarm(this.swarmA);
+        resetSwarm(this.swarmB);
         this.environment.restart(lockResources, lockWalls);
         initialize(lockHives);
     }
-    
+
+    private void resetSwarm(Swarm swarm) {
+        if (swarm != null) {
+            swarm.setControlMode(this.controlMode);
+            swarm.reset();
+        }
+    }
+
     public void updateLocation(int x, int y, int value) {
         environment.setValue(x, y, value);
     }
@@ -75,17 +89,13 @@ public class SwarmModel implements Modelable {
     public void createResource(int x, int y) {
         environment.addResourceAt(x, y);
     }
-    
-    public Neighborhood getNeighborhood(int id, double x, double y) {
-        return environment.getNeighborhood(id, x, y);
-    }
 
     @Override
     public void step() {
         environment.step();
         environment.clean();
         swarmA.step();
-        if (Globals.CONTEST) {
+        if (this.isContestMode()) {
             swarmB.step();
         }
     }
@@ -101,29 +111,26 @@ public class SwarmModel implements Modelable {
         }
         return false;
     }
+
     public int getTotalResourceMassAvailable() { return this.environment.totalResourceMassAvailable(); }
 
     public void paint(Graphics g) {
-        environment.paint(g);
-        if (!Globals.PHEREMODE1 && !Globals.PHEREMODE2 && !Globals.PHEREMODE3) {
+        environment.paint(g, this.viewMode);
+        if (this.viewMode == ViewMode.NORMAL) {
             swarmA.paint(g);
-            if (Globals.CONTEST) {
-                swarmB.paint(g);
-            }
+            if (this.isContestMode()) swarmB.paint(g);
         }
     }
     
     public int[] getTotals() {
         int[] result = new int[2];
         result[0] = swarmA.getResourceTotal();
-        if (Globals.CONTEST) {
-            result[1] = swarmB.getResourceTotal();
-        }
+        if (this.isContestMode()) result[1] = swarmB.getResourceTotal();
         return result;
     }
 
     public void save() {
-        if (Globals.CONTEST) {
+        if (this.isContestMode()) {
 //            MyWriter mw = new MyWriter("data");
 //            boolean awins;
 //            awins = swarmA.getTotal() > swarmB.getTotal();

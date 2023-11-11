@@ -10,9 +10,9 @@ import bugs.Swarm;
 import pheromone.Pheromone;
 import pheromone.PheromoneChannel;
 import pheromone.PheromoneLayer;
-import swarmintelligence.Globals;
 import swarmintelligence.SwarmModel;
 import swarmintelligence.SwarmUtilities;
+import gui.ViewMode;
 
 public class Environment implements IEnvironment {
 
@@ -28,7 +28,7 @@ public class Environment implements IEnvironment {
 
     public Environment(SwarmModel m) {
         this.swarmModel = m;
-        this.grid = new int[ENVIRONMENT_WIDTH][ENVIRONMENT_HEIGHT]; // (x, y)
+        this.grid = new int[ENVIRONMENT_WIDTH][ENVIRONMENT_HEIGHT];
         this.settings = new EnvironmentSettings();
         initPheromoneLayers();
         initWalls();
@@ -57,11 +57,11 @@ public class Environment implements IEnvironment {
     }
 
     private Resource createResource() {
-        int x = SwarmUtilities.random(10, ENVIRONMENT_WIDTH - 10);
-        int y = SwarmUtilities.random(10, ENVIRONMENT_HEIGHT - 10);
+        int x = SwarmUtilities.randomBetween(10, ENVIRONMENT_WIDTH - 10);
+        int y = SwarmUtilities.randomBetween(10, ENVIRONMENT_HEIGHT - 10);
         while (isWallAt(x, y)) {
-            x = SwarmUtilities.random(10, ENVIRONMENT_WIDTH - 10);
-            y = SwarmUtilities.random(10, ENVIRONMENT_HEIGHT - 10);
+            x = SwarmUtilities.randomBetween(10, ENVIRONMENT_WIDTH - 10);
+            y = SwarmUtilities.randomBetween(10, ENVIRONMENT_HEIGHT - 10);
         }
         return createResourceAt(x, y);
     }
@@ -206,23 +206,28 @@ public class Environment implements IEnvironment {
         initPheromoneLayers();
     }
     
-    public void paint(Graphics g) {
-        if (Globals.PHEREMODE1) {
-            paintPheromoneChannel(PheromoneChannel.RESOURCE_A, g);
-        } else if (Globals.PHEREMODE2) {
-            paintPheromoneChannel(PheromoneChannel.HIVE_A, g);
-        } else if (Globals.PHEREMODE3) {
-            paintPheromoneChannel(PheromoneChannel.HIVE_B, g);
-        } else {
-            g.setColor(Color.BLACK);
-            for (int x = 0; x < ENVIRONMENT_WIDTH; x++) {
-                for (int y = 0; y < ENVIRONMENT_HEIGHT; y++) {
-                    if (isWallAt(x, y)) {
-                        g.fillRect(x, y, 1, 1);
+    public void paint(Graphics g, ViewMode viewMode) {
+        switch (viewMode) {
+            case NORMAL:
+                g.setColor(Color.BLACK);
+                for (int x = 0; x < ENVIRONMENT_WIDTH; x++) {
+                    for (int y = 0; y < ENVIRONMENT_HEIGHT; y++) {
+                        if (isWallAt(x, y)) {
+                            g.fillRect(x, y, 1, 1);
+                        }
                     }
                 }
-            }
-            resources.paint(g);
+                resources.paint(g);
+                break;
+            case PHEROMONE1:
+                paintPheromoneChannel(PheromoneChannel.RESOURCE_A, g);
+                break;
+            case PHEROMONE2:
+                paintPheromoneChannel(PheromoneChannel.HIVE_A, g);
+                break;
+            case PHEROMONE3:
+                paintPheromoneChannel(PheromoneChannel.HIVE_B, g);
+                break;
         }
     }
 

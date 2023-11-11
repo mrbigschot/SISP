@@ -1,57 +1,56 @@
 package gui;
 
+// Java imports
 import java.awt.Graphics;
-import mvc.*;
-import swarmintelligence.Globals;
+
+// Swarm imports
+import mvc.Controller;
+import mvc.Viewable;
 import swarmintelligence.SwarmModel;
 
 public class SIPanel extends javax.swing.JPanel implements Viewable {
 
-    SIFrame theFrame;
-    Controller theController;
-    SwarmModel theModel;
+    private SIFrame theFrame;
+    private final Controller theController;
+    private final SwarmModel swarmModel;
     
     public SIPanel() {
         initComponents();
-        theModel = new SwarmModel();
-        theController = new Controller(this, theModel);
+        this.swarmModel = new SwarmModel();
+        theController = new Controller(this, this.swarmModel);
     }
-    
     public SIPanel(SIFrame f) {
         this();
-        theFrame = f;
+        this.theFrame = f;
     }
-    
-    @Override
-    public void display() {
-        theFrame.repaint();
-    }
-    
+
     public SwarmModel getModel() {
-        return theModel;
+        return this.swarmModel;
     }
-    
     public Controller getController() {
         return theController;
     }
 
     @Override
-    public void paintComponent(Graphics g){
-       theModel.paint(g);
-       int[] totals = theModel.getTotals();
-       blueProgress.setValue(progress(totals[0], theModel.getTotalResourceMassAvailable()));
-       redProgress.setValue(progress(totals[1], theModel.getTotalResourceMassAvailable()));
+    public void display() {
+        theFrame.repaint();
     }
-    
-    public int progress(int n, int d) {
-        double result = (double)n / d;
-        return (int) (result * 1000);
+
+    @Override
+    public void paintComponent(Graphics g){
+       this.swarmModel.paint(g);
+       int[] totals = this.swarmModel.getTotals();
+       blueProgress.setValue(progress(totals[0], this.swarmModel.getTotalResourceMassAvailable()));
+       redProgress.setValue(progress(totals[1], this.swarmModel.getTotalResourceMassAvailable()));
+    }
+    private int progress(int value, int total) {
+        double result = (double)value / total;
+        return (int)(result * 1000);
     }
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
-
         jPanel1 = new javax.swing.JPanel();
         blueProgress = new javax.swing.JProgressBar();
         redProgress = new javax.swing.JProgressBar();
@@ -108,18 +107,15 @@ public class SIPanel extends javax.swing.JPanel implements Viewable {
         );
     }// </editor-fold>//GEN-END:initComponents
 
-    private void formMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMouseReleased
-        if (Globals.MANUAL_RESOURCES) {
-            theModel.createResource(evt.getX(), evt.getY());
+    private void formMouseReleased(java.awt.event.MouseEvent evt) {
+        if (this.swarmModel.isManualResourcePlacement()) {
+            this.swarmModel.createResource(evt.getX(), evt.getY());
             display();
         }
-    }//GEN-LAST:event_formMouseReleased
+    }
 
-
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JProgressBar blueProgress;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JProgressBar blueProgress;
     private javax.swing.JProgressBar redProgress;
-    // End of variables declaration//GEN-END:variables
 
 }

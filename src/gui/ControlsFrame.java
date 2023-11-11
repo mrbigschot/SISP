@@ -1,14 +1,15 @@
 package gui;
 
+// Java imports
+import javax.swing.DefaultListModel;
+
+// Swarm impprts
 import mvc.Controller;
-import pheromone.PheromoneChannel;
-import swarmintelligence.Globals;
-import swarmintelligence.SwarmModel;
 import bugs.BugConfiguration;
 import bugs.SwarmConfiguration;
+import pheromone.PheromoneChannel;
+import swarmintelligence.SwarmModel;
 import swarmintelligence.SwarmUtilities;
-
-import javax.swing.DefaultListModel;
 
 public class ControlsFrame extends javax.swing.JFrame {
 
@@ -19,6 +20,7 @@ public class ControlsFrame extends javax.swing.JFrame {
     private SwarmConfiguration swarmConfig;
     private DefaultListModel<BugConfiguration> configs;
     private BugConfiguration currentConfig;
+    private boolean manualResourcePlacement = false;
 
     public ControlsFrame() {
         initComponents();
@@ -53,7 +55,7 @@ public class ControlsFrame extends javax.swing.JFrame {
         try {
             Thread.sleep(100);
         } catch (InterruptedException ex) {
-
+            // do nothing
         }
         swarmModel.restart();
         theFrame.repaint();
@@ -68,26 +70,32 @@ public class ControlsFrame extends javax.swing.JFrame {
     }
 
     private void setPheromonePersistence(PheromoneChannel channel, int value) {
-        swarmModel.getEnvironment().getSettings().setPheromonePersistence(channel, value);
+        this.swarmModel.getEnvironment().getSettings().setPheromonePersistence(channel, value);
     }
     private void setResourceCount(int value) {
-        swarmModel.getEnvironment().getSettings().setResourceCount(value);
+        this.swarmModel.getEnvironment().getSettings().setResourceCount(value);
     }
     private void setWallCount(int value) {
-        swarmModel.getEnvironment().getSettings().setWallCount(value);
+        this.swarmModel.getEnvironment().getSettings().setWallCount(value);
+    }
+    private void setViewMode(ViewMode value) {
+        this.swarmModel.setViewMode(value);
+    }
+    private void setManualResourcePlacement(boolean value) {
+        this.swarmModel.setManualResourcePlacement(value);
     }
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
-        viewButtons = new javax.swing.ButtonGroup();
         jTabbedPane1 = new javax.swing.JTabbedPane();
         ctrlPanel = new javax.swing.JPanel();
         jPanel1 = new javax.swing.JPanel();
-        pher1Toggle = new javax.swing.JRadioButton();
-        pher2Toggle = new javax.swing.JRadioButton();
-        standardViewToggle = new javax.swing.JRadioButton();
-        pher3Toggle = new javax.swing.JRadioButton();
+        viewButtons = new javax.swing.ButtonGroup();
+        standardViewRadio = new javax.swing.JRadioButton();
+        pher1ViewRadio = new javax.swing.JRadioButton();
+        pher2ViewRadio = new javax.swing.JRadioButton();
+        pher3ViewRadio = new javax.swing.JRadioButton();
         jPanel2 = new javax.swing.JPanel();
         ctrlButton = new javax.swing.JToggleButton();
         contestButton = new javax.swing.JToggleButton();
@@ -148,36 +156,36 @@ public class ControlsFrame extends javax.swing.JFrame {
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)), "VIEWS"));
         jPanel1.setOpaque(false);
 
-        viewButtons.add(pher1Toggle);
-        pher1Toggle.setText("PH 1");
-        pher1Toggle.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                pher1ToggleStateChanged(evt);
+        viewButtons.add(standardViewRadio);
+        standardViewRadio.setSelected(true);
+        standardViewRadio.setText("Standard");
+        standardViewRadio.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                standardViewStateChanged(evt);
             }
         });
 
-        viewButtons.add(pher2Toggle);
-        pher2Toggle.setText("PH 2");
-        pher2Toggle.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                pher2ToggleStateChanged(evt);
+        viewButtons.add(pher1ViewRadio);
+        pher1ViewRadio.setText("Pheromone 1");
+        pher1ViewRadio.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                pheromone1ViewStateChanged(evt);
             }
         });
 
-        viewButtons.add(standardViewToggle);
-        standardViewToggle.setSelected(true);
-        standardViewToggle.setText("Standard");
-        standardViewToggle.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                standardViewToggleStateChanged(evt);
+        viewButtons.add(pher2ViewRadio);
+        pher2ViewRadio.setText("Pheromone 2");
+        pher2ViewRadio.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                pheromone2ViewStateChanged(evt);
             }
         });
 
-        viewButtons.add(pher3Toggle);
-        pher3Toggle.setText("PH 3");
-        pher3Toggle.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                pher3ToggleStateChanged(evt);
+        viewButtons.add(pher3ViewRadio);
+        pher3ViewRadio.setText("Pheromone 3");
+        pher3ViewRadio.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                pheromone3ViewStateChanged(evt);
             }
         });
 
@@ -187,13 +195,13 @@ public class ControlsFrame extends javax.swing.JFrame {
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(standardViewToggle)
+                .addComponent(standardViewRadio)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(pher1Toggle)
+                .addComponent(pher1ViewRadio)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(pher2Toggle)
+                .addComponent(pher2ViewRadio)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(pher3Toggle)
+                .addComponent(pher3ViewRadio)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
@@ -201,10 +209,10 @@ public class ControlsFrame extends javax.swing.JFrame {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(pher1Toggle)
-                    .addComponent(pher2Toggle)
-                    .addComponent(standardViewToggle)
-                    .addComponent(pher3Toggle))
+                    .addComponent(standardViewRadio)
+                    .addComponent(pher1ViewRadio)
+                    .addComponent(pher2ViewRadio)
+                    .addComponent(pher3ViewRadio))
                 .addContainerGap(12, Short.MAX_VALUE))
         );
 
@@ -892,7 +900,7 @@ public class ControlsFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_saveButtonActionPerformed
 
     private void contestButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_contestButtonActionPerformed
-        Globals.toggleContest();
+        swarmModel.toggleContestMode();
         reset();
     }//GEN-LAST:event_contestButtonActionPerformed
 
@@ -909,7 +917,7 @@ public class ControlsFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_restartButtonActionPerformed
 
     private void ctrlButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ctrlButtonActionPerformed
-        Globals.CONTROL = !Globals.CONTROL;
+        this.swarmModel.toggleControlMode();
         restart();
     }//GEN-LAST:event_ctrlButtonActionPerformed
 
@@ -935,31 +943,32 @@ public class ControlsFrame extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_removeButtonActionPerformed
 
-    private void pher1ToggleStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_pher1ToggleStateChanged
-        Globals.PHEREMODE1 = !Globals.PHEREMODE1;
+    private void standardViewStateChanged(java.awt.event.ItemEvent evt) {
+        if (evt.getStateChange() == java.awt.event.ItemEvent.SELECTED) setViewMode(ViewMode.NORMAL);
         theController.display();
-    }//GEN-LAST:event_pher1ToggleStateChanged
+    }
 
-    private void pher2ToggleStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_pher2ToggleStateChanged
-        Globals.PHEREMODE2 = !Globals.PHEREMODE2;
+    private void pheromone1ViewStateChanged(java.awt.event.ItemEvent evt) {
+        if (evt.getStateChange() == java.awt.event.ItemEvent.SELECTED) setViewMode(ViewMode.PHEROMONE1);
         theController.display();
-    }//GEN-LAST:event_pher2ToggleStateChanged
+    }
 
-    private void standardViewToggleStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_standardViewToggleStateChanged
+    private void pheromone2ViewStateChanged(java.awt.event.ItemEvent evt) {
+        if (evt.getStateChange() == java.awt.event.ItemEvent.SELECTED) setViewMode(ViewMode.PHEROMONE2);
         theController.display();
-    }//GEN-LAST:event_standardViewToggleStateChanged
+    }
+
+    private void pheromone3ViewStateChanged(java.awt.event.ItemEvent evt) {
+        if (evt.getStateChange() == java.awt.event.ItemEvent.SELECTED) setViewMode(ViewMode.PHEROMONE3);
+        theController.display();
+    }
 
     private void randomizeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_randomizeButtonActionPerformed
-        avoidSlider.setValue(SwarmUtilities.random(0, 100));
-        matchSlider.setValue(SwarmUtilities.random(0, 100));
-        condenseSlider.setValue(SwarmUtilities.random(0, 100));
+        avoidSlider.setValue(SwarmUtilities.randomBetween(0, 100));
+        matchSlider.setValue(SwarmUtilities.randomBetween(0, 100));
+        condenseSlider.setValue(SwarmUtilities.randomBetween(0, 100));
         grabCheck.setSelected(SwarmUtilities.coinFlip(.5));
     }//GEN-LAST:event_randomizeButtonActionPerformed
-
-    private void pher3ToggleStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_pher3ToggleStateChanged
-        Globals.PHEREMODE3 = !Globals.PHEREMODE3;
-        theController.display();
-    }//GEN-LAST:event_pher3ToggleStateChanged
 
     private void ph1SliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_ph1SliderStateChanged
         setPheromonePersistence(PheromoneChannel.RESOURCE_A, ph1Slider.getValue());
@@ -1011,13 +1020,13 @@ public class ControlsFrame extends javax.swing.JFrame {
 
     private void manualResourcesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_manualResourcesActionPerformed
         if (manualResources.isSelected()) {
-            setResourceCount(0);
-            Globals.MANUAL_RESOURCES = true;
             goalSlider.setEnabled(false);
+            setResourceCount(0);
+            setManualResourcePlacement(true);
         } else {
             goalSlider.setEnabled(true);
             setResourceCount(goalSlider.getValue());
-            Globals.MANUAL_RESOURCES = false;
+            setManualResourcePlacement(false);
         }
         reset();
     }//GEN-LAST:event_manualResourcesActionPerformed
@@ -1095,9 +1104,11 @@ public class ControlsFrame extends javax.swing.JFrame {
     private javax.swing.JSlider ph2Slider;
     private javax.swing.JCheckBox ph3Check;
     private javax.swing.JSlider ph3Slider;
-    private javax.swing.JRadioButton pher1Toggle;
-    private javax.swing.JRadioButton pher2Toggle;
-    private javax.swing.JRadioButton pher3Toggle;
+    private javax.swing.ButtonGroup viewButtons;
+    private javax.swing.JRadioButton standardViewRadio;
+    private javax.swing.JRadioButton pher1ViewRadio;
+    private javax.swing.JRadioButton pher2ViewRadio;
+    private javax.swing.JRadioButton pher3ViewRadio;
     private javax.swing.JButton randomizeButton;
     private javax.swing.JButton removeButton;
     private javax.swing.JButton resetButton;
@@ -1107,12 +1118,10 @@ public class ControlsFrame extends javax.swing.JFrame {
     private javax.swing.JButton saveButton;
     private javax.swing.JButton setButton;
     private javax.swing.JSlider sizeSlider;
-    private javax.swing.JRadioButton standardViewToggle;
     private javax.swing.JLabel swarmSizeLabel;
     private javax.swing.JTextField swarmSizeTF;
     private javax.swing.JPanel tendencies;
     private javax.swing.JSlider timeSlider;
-    private javax.swing.ButtonGroup viewButtons;
     private javax.swing.JSlider wallSlider;
     private javax.swing.JLabel wallsLabel;
     // End of variables declaration//GEN-END:variables
