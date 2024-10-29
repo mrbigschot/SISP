@@ -11,7 +11,7 @@ public class EnvironmentSettings {
     public EnvironmentSettings() {
         this.pheromonePersistence = new int[PheromoneChannel.getSize()];
         setPheromonePersistence(PheromoneChannel.RESOURCE_A, 25);
-        setPheromonePersistence(PheromoneChannel.HIVE_A, 25);
+        setPheromonePersistence(PheromoneChannel.HIVE_A, 0);
         setPheromonePersistence(PheromoneChannel.RESOURCE_B, 25);
         setPheromonePersistence(PheromoneChannel.HIVE_B, 25);
 

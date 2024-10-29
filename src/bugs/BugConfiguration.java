@@ -5,6 +5,7 @@ public class BugConfiguration {
     private double weightAvoid = 0.0;
     private double weightCondense = 0.0;
     private double weightMatch = 0.0;
+    private int adventurous = 0;
     private boolean canGrab = false;
     private int size = 0;
     
@@ -14,8 +15,9 @@ public class BugConfiguration {
         this.weightAvoid = Double.parseDouble(values[0]);
         this.weightCondense = Double.parseDouble(values[1]);
         this.weightMatch = Double.parseDouble(values[2]);
-        this.canGrab = (Integer.parseInt(values[3]) == 1);
-        this.size = Integer.parseInt(values[4]);
+        this.adventurous = Integer.parseInt(values[3]);
+        this.canGrab = (Integer.parseInt(values[4]) == 1);
+        this.size = Integer.parseInt(values[5]);
     }
     
     public double getWeightAvoid() { return this.weightAvoid; }
@@ -27,6 +29,13 @@ public class BugConfiguration {
     public double getWeightMatch() { return this.weightMatch; }
     public int getWeightMatchInt() { return (int)(this.weightMatch * 100); }
     public void setWeightMatch(double value) { this.weightMatch = value; }
+    public void setWeights(double avoidValue, double matchValue, double condenseValue) {
+        this.setWeightAvoid(avoidValue);
+        this.setWeightMatch(matchValue);
+        this.setWeightCondense(condenseValue);
+    }
+    public void setAdventurous(int value) { this.adventurous = value; }
+    public int getAdventurous() { return this.adventurous; }
     public boolean getCanGrab() { return this.canGrab; }
     public void setCanGrab(boolean value) { this.canGrab = value; }
     public int getSize() { return (int)(this.size); }
@@ -34,6 +43,7 @@ public class BugConfiguration {
     
     public void configure(Bug bug) {
         bug.setWeights(this.weightAvoid, this.weightMatch, this.weightCondense);
+        bug.setAdventurous(this.adventurous);
         bug.setCanGrab(this.canGrab);
     }
     

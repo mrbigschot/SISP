@@ -22,6 +22,8 @@ public class ControlsFrame extends javax.swing.JFrame {
     private BugConfiguration currentConfig;
     private boolean manualResourcePlacement = false;
 
+    private int weightAvoid = 50, weightMatch = 50, weightCondense = 50;
+
     public ControlsFrame() {
         initComponents();
         this.setLocation(1215, 0);
@@ -47,7 +49,8 @@ public class ControlsFrame extends javax.swing.JFrame {
         ph1Slider.setValue(swarmModel.getEnvironment().getSettings().getPheromonePersistence(PheromoneChannel.RESOURCE_A));
         ph2Slider.setValue(swarmModel.getEnvironment().getSettings().getPheromonePersistence(PheromoneChannel.HIVE_A));
         ph3Slider.setValue(swarmModel.getEnvironment().getSettings().getPheromonePersistence(PheromoneChannel.HIVE_B));
-
+        updateBugWeightDisplays();
+        updateBugGroupSizeDisplay();
     }
 
     private void restart() {
@@ -106,22 +109,42 @@ public class ControlsFrame extends javax.swing.JFrame {
         bugPanel = new javax.swing.JPanel();
         setButton = new javax.swing.JButton();
         jPanel4 = new javax.swing.JPanel();
-        tendencies = new javax.swing.JPanel();
+        movementTendencies = new javax.swing.JPanel();
         jLabel3 = new javax.swing.JLabel();
-        condenseSlider = new javax.swing.JSlider();
-        matchSlider = new javax.swing.JSlider();
         jLabel2 = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
         avoidTF = new javax.swing.JTextField();
         matchTF = new javax.swing.JTextField();
         condenseTF = new javax.swing.JTextField();
         avoidSlider = new javax.swing.JSlider();
+        avoidSlider.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                bugWeightSliderStateChanged(evt);
+            }
+        });
+        matchSlider = new javax.swing.JSlider();
+        matchSlider.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                bugWeightSliderStateChanged(evt);
+            }
+        });
+        condenseSlider = new javax.swing.JSlider();
+        condenseSlider.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                bugWeightSliderStateChanged(evt);
+            }
+        });
         grabCheck = new javax.swing.JCheckBox();
         randomizeButton = new javax.swing.JButton();
         saveButton = new javax.swing.JButton();
-        sizeSlider = new javax.swing.JSlider();
-        swarmSizeTF = new javax.swing.JTextField();
-        swarmSizeLabel = new javax.swing.JLabel();
+        bugGroupSizeSlider = new javax.swing.JSlider();
+        bugGroupSizeSlider.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                bugGroupSizeSliderStateChanged(evt);
+            }
+        });
+        bugGroupSizeTF = new javax.swing.JTextField();
+        bugGroupSizeLabel = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         configList = new javax.swing.JList();
         addButton = new javax.swing.JButton();
@@ -354,7 +377,7 @@ public class ControlsFrame extends javax.swing.JFrame {
 
         jPanel4.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
-        tendencies.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "TENDENCIES", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Lucida Grande", 0, 12))); // NOI18N
+        movementTendencies.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "TENDENCIES", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Lucida Grande", 0, 12))); // NOI18N
 
         jLabel3.setFont(new java.awt.Font("Lucida Grande", 0, 12)); // NOI18N
         jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
@@ -388,8 +411,8 @@ public class ControlsFrame extends javax.swing.JFrame {
             }
         });
 
-        javax.swing.GroupLayout tendenciesLayout = new javax.swing.GroupLayout(tendencies);
-        tendencies.setLayout(tendenciesLayout);
+        javax.swing.GroupLayout tendenciesLayout = new javax.swing.GroupLayout(movementTendencies);
+        movementTendencies.setLayout(tendenciesLayout);
         tendenciesLayout.setHorizontalGroup(
             tendenciesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(tendenciesLayout.createSequentialGroup()
@@ -445,49 +468,53 @@ public class ControlsFrame extends javax.swing.JFrame {
 
         saveButton.setFont(new java.awt.Font("Lucida Grande", 0, 10)); // NOI18N
         saveButton.setText("SAVE");
+        saveButton.setEnabled(false);
         saveButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 saveButtonActionPerformed(evt);
             }
         });
 
-        sizeSlider.setMaximum(500);
-        sizeSlider.setMinimum(1);
-        sizeSlider.addChangeListener(new javax.swing.event.ChangeListener() {
+        bugGroupSizeSlider.setMaximum(500);
+        bugGroupSizeSlider.setMinimum(1);
+        bugGroupSizeSlider.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                sizeSliderStateChanged(evt);
+                bugGroupSizeSliderStateChanged(evt);
             }
         });
 
-        swarmSizeTF.setFont(new java.awt.Font("Lucida Grande", 0, 10)); // NOI18N
-        swarmSizeTF.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
+        bugGroupSizeTF.setFont(new java.awt.Font("Lucida Grande", 0, 10)); // NOI18N
+        bugGroupSizeTF.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
 
 
-        swarmSizeLabel.setFont(new java.awt.Font("Lucida Grande", 0, 12)); // NOI18N
-        swarmSizeLabel.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        swarmSizeLabel.setText("Number of Bugs:");
+        bugGroupSizeLabel.setFont(new java.awt.Font("Lucida Grande", 0, 12)); // NOI18N
+        bugGroupSizeLabel.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        bugGroupSizeLabel.setText("Number of Bugs:");
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
         jPanel4Layout.setHorizontalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel4Layout.createSequentialGroup()
-                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(jPanel4Layout.createSequentialGroup()
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(saveButton))
+                            .addComponent(addButton, javax.swing.GroupLayout.PREFERRED_SIZE, 84, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addComponent(removeButton)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addComponent(saveButton))
                     .addGroup(jPanel4Layout.createSequentialGroup()
                         .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel4Layout.createSequentialGroup()
                                 .addGap(6, 6, 6)
-                                .addComponent(tendencies, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(movementTendencies, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(jPanel4Layout.createSequentialGroup()
                                 .addContainerGap()
-                                .addComponent(swarmSizeLabel)
+                                .addComponent(bugGroupSizeLabel)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(sizeSlider, javax.swing.GroupLayout.PREFERRED_SIZE, 266, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(bugGroupSizeSlider, javax.swing.GroupLayout.PREFERRED_SIZE, 266, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(swarmSizeTF, javax.swing.GroupLayout.PREFERRED_SIZE, 53, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addComponent(bugGroupSizeTF, javax.swing.GroupLayout.PREFERRED_SIZE, 53, javax.swing.GroupLayout.PREFERRED_SIZE)))
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -495,14 +522,17 @@ public class ControlsFrame extends javax.swing.JFrame {
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(tendencies, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(movementTendencies, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(swarmSizeLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(sizeSlider, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(swarmSizeTF, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(bugGroupSizeLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(bugGroupSizeSlider, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(bugGroupSizeTF, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 52, Short.MAX_VALUE)
-                .addComponent(saveButton)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(addButton)
+                    .addComponent(removeButton)
+                    .addComponent(saveButton))
                 .addContainerGap())
         );
 
@@ -524,6 +554,7 @@ public class ControlsFrame extends javax.swing.JFrame {
 
         removeButton.setFont(new java.awt.Font("Lucida Grande", 0, 10)); // NOI18N
         removeButton.setText("REMOVE");
+        removeButton.setEnabled(false);
         removeButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 removeButtonActionPerformed(evt);
@@ -538,10 +569,6 @@ public class ControlsFrame extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(bugPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(bugPanelLayout.createSequentialGroup()
-                        .addComponent(addButton, javax.swing.GroupLayout.PREFERRED_SIZE, 84, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(removeButton)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(setButton))
                     .addGroup(bugPanelLayout.createSequentialGroup()
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 431, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -559,8 +586,6 @@ public class ControlsFrame extends javax.swing.JFrame {
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(bugPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(addButton)
-                    .addComponent(removeButton)
                     .addComponent(setButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -853,26 +878,30 @@ public class ControlsFrame extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void resetButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resetButtonActionPerformed
+    private void updateBugWeightDisplays() {
+        avoidTF.setText(Double.toString(avoidSlider.getValue() / 100.0));
+        matchTF.setText(Double.toString(matchSlider.getValue() / 100.0));
+        condenseTF.setText(Double.toString(condenseSlider.getValue() / 100.0));
+    }
+    private void updateBugGroupSizeDisplay() {
+        bugGroupSizeTF.setText(Integer.toString(bugGroupSizeSlider.getValue()));
+    }
+
+    private void resetButtonActionPerformed(java.awt.event.ActionEvent evt) {
         reset();
-    }//GEN-LAST:event_resetButtonActionPerformed
+    }
 
-    private void lockResourceCheckStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_lockResourceCheckStateChanged
+    private void lockResourceCheckStateChanged(javax.swing.event.ChangeEvent evt) {
         lockResources = !lockResources;
-    }//GEN-LAST:event_lockResourceCheckStateChanged
+    }
 
-    private void lockWallCheckStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_lockWallCheckStateChanged
+    private void lockWallCheckStateChanged(javax.swing.event.ChangeEvent evt) {
         lockWalls = !lockWalls;
-    }//GEN-LAST:event_lockWallCheckStateChanged
+    }
 
-    private void lockHiveCheckStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_lockHiveCheckStateChanged
+    private void lockHiveCheckStateChanged(javax.swing.event.ChangeEvent evt) {
         lockHives = !lockHives;
-    }//GEN-LAST:event_lockHiveCheckStateChanged
-
-    private void sizeSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sizeSliderStateChanged
-//        Globals.SWARM_SIZE = sizeSlider.getValue();
-        restart();
-    }//GEN-LAST:event_sizeSliderStateChanged
+    }
 
     private void goalSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_goalSliderStateChanged
         setResourceCount(goalSlider.getValue());
@@ -895,7 +924,7 @@ public class ControlsFrame extends javax.swing.JFrame {
         currentConfig.setWeightMatch(matchSlider.getValue() / 100.0);
         currentConfig.setWeightCondense(condenseSlider.getValue() / 100.0);
         currentConfig.setCanGrab(grabCheck.isSelected());
-        currentConfig.setSize(sizeSlider.getValue());
+        currentConfig.setSize(bugGroupSizeSlider.getValue());
         configList.updateUI();
     }//GEN-LAST:event_saveButtonActionPerformed
 
@@ -922,7 +951,15 @@ public class ControlsFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_ctrlButtonActionPerformed
 
     private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtonActionPerformed
-        configs.addElement(new BugConfiguration());
+        BugConfiguration toAdd = new BugConfiguration();
+        toAdd.setWeights(
+                avoidSlider.getValue() / 100.0,
+                matchSlider.getValue() / 100.0,
+                condenseSlider.getValue() / 100.0
+        );
+        toAdd.setCanGrab(grabCheck.isSelected());
+        toAdd.setSize(bugGroupSizeSlider.getValue());
+        configs.addElement(toAdd);
     }//GEN-LAST:event_addButtonActionPerformed
 
     private void configListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_configListValueChanged
@@ -932,7 +969,12 @@ public class ControlsFrame extends javax.swing.JFrame {
             matchSlider.setValue(currentConfig.getWeightMatchInt());
             condenseSlider.setValue(currentConfig.getWeightCondenseInt());
             grabCheck.setSelected(currentConfig.getCanGrab());
-            sizeSlider.setValue(currentConfig.getSize());
+            bugGroupSizeSlider.setValue(currentConfig.getSize());
+            saveButton.setEnabled(true);
+            removeButton.setEnabled(true);
+        } else {
+            saveButton.setEnabled(false);
+            removeButton.setEnabled(false);
         }
     }//GEN-LAST:event_configListValueChanged
 
@@ -961,6 +1003,13 @@ public class ControlsFrame extends javax.swing.JFrame {
     private void pheromone3ViewStateChanged(java.awt.event.ItemEvent evt) {
         if (evt.getStateChange() == java.awt.event.ItemEvent.SELECTED) setViewMode(ViewMode.PHEROMONE3);
         theController.display();
+    }
+
+    private void bugWeightSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_ph1SliderStateChanged
+        updateBugWeightDisplays();
+    }
+    private void bugGroupSizeSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_ph1SliderStateChanged
+        updateBugGroupSizeDisplay();
     }
 
     private void randomizeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_randomizeButtonActionPerformed
@@ -1117,10 +1166,10 @@ public class ControlsFrame extends javax.swing.JFrame {
     private javax.swing.JToggleButton runButton;
     private javax.swing.JButton saveButton;
     private javax.swing.JButton setButton;
-    private javax.swing.JSlider sizeSlider;
-    private javax.swing.JLabel swarmSizeLabel;
-    private javax.swing.JTextField swarmSizeTF;
-    private javax.swing.JPanel tendencies;
+    private javax.swing.JSlider bugGroupSizeSlider;
+    private javax.swing.JLabel bugGroupSizeLabel;
+    private javax.swing.JTextField bugGroupSizeTF;
+    private javax.swing.JPanel movementTendencies;
     private javax.swing.JSlider timeSlider;
     private javax.swing.JSlider wallSlider;
     private javax.swing.JLabel wallsLabel;

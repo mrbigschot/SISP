@@ -25,6 +25,7 @@ public class Bug extends SIObject implements IBug {
     private double wAvoid = 0.0;
     private double wCondense = 0.0;
     private double wMatch = 0.0;
+    private int adventurous;
     private boolean grabber = true;
 
     private int activeDelay = 0;
@@ -43,7 +44,6 @@ public class Bug extends SIObject implements IBug {
     private int timeSinceResource = -1;
     private int timeSinceHive = 0;
     private final int smellThreshold;
-    private final int adventurous;
 
     private final int[][] pheromoneMemory;
     private double resourceX, resourceY;
@@ -58,7 +58,6 @@ public class Bug extends SIObject implements IBug {
         this.pheromoneMemory = new int[PheromoneChannel.getSize()][3];
         this.pheromoneOut = new int[PheromoneChannel.getSize()];
         this.smellThreshold = SwarmUtilities.randomBetween(50, 250);
-        this.adventurous = SwarmUtilities.randomBetween(50, Pheromone.MAX_VALUE);
     }
 
     public Bug(Swarm s, double x, double y, Color c, int b, boolean controlMode) {
@@ -169,7 +168,7 @@ public class Bug extends SIObject implements IBug {
         if (this.isSeekingResource()) {
             if (hasSmelled(this.channelResource)) {
                 followPheromone(this.channelResource);
-            } else if (this.timeSinceHive >= this.adventurous) {
+            } else if (this.adventurous > 0 && this.timeSinceHive >= this.adventurous) {
                 this.seekingType = SEEKING_HIVE;
             } else if (hasSmelled(this.channelHive)) {
                 avoidPheromone(this.channelHive);
@@ -466,7 +465,7 @@ public class Bug extends SIObject implements IBug {
         } else {
             returnMe = .1;
         }
-        if (SwarmUtilities.coinFlip(.1)) { // 10% of the time add some noise
+        if (SwarmUtilities.coinFlip(.01)) { // 1% of the time add some noise
             if (SwarmUtilities.coinFlip(.5)) {
                 returnMe += .0005;
             } else {
@@ -489,7 +488,7 @@ public class Bug extends SIObject implements IBug {
         accel(addSpeed);
         double nx = x + (speed * Math.cos(orientation));
         double ny = y + (speed * Math.sin(orientation));
-        if (facingWall(nx, ny)) {
+        if (isFacingWall(nx, ny)) {
             if (wallCounter == 0) {
                 turnLeft = SwarmUtilities.coinFlip(.5);
             }
@@ -517,7 +516,7 @@ public class Bug extends SIObject implements IBug {
         }
     }
 
-    private boolean facingWall(double nx, double ny) {
+    private boolean isFacingWall(double nx, double ny) {
         double dx = nx - x;
         double dy = ny - y;
         int gx = (int)(currentNeighborhood.getCenter()[0] + dx);
@@ -530,6 +529,7 @@ public class Bug extends SIObject implements IBug {
         wMatch = wM;
         wCondense = wC;
     }
+    public void setAdventurous(int value) { this.adventurous = value; }
     public void setCanGrab(boolean value) {
         this.grabber = value;
     }
@@ -589,7 +589,6 @@ public class Bug extends SIObject implements IBug {
     @Override
     public void paint(Graphics g) {
         g.setColor(color);
-        
         int size = (carry > 0) ? BUG_SIZE_LARGE : BUG_SIZE;
         int drawX = getIntX() - size / 2;
         int drawY = getIntY() - size / 2;
